@@ -6,8 +6,35 @@
     <title>Admin Panel</title>
     <style>
          body { font-family: sans-serif; background-color: #fff8f8; color: #333; margin: 0; padding: 20px; }
-         h1 { text-align: center; color: #d92e2e; }
          .container { max-width: 800px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+         
+         /* New styles for the admin header */
+         #user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+         }
+         #user-info {
+            font-size: 0.9em;
+            color: #555;
+         }
+         #sign-out-button {
+            background-color: #d9534f;
+            color: white;
+            padding: 8px 12px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 0.9em;
+            transition: background-color 0.2s;
+         }
+         #sign-out-button:hover {
+            background-color: #c9302c;
+         }
+
+         h1 { text-align: center; color: #d92e2e; margin-top: 0; }
          input { width: calc(100% - 22px); padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; }
          button { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; background-color: #005cb9; color: white; }
          button.save { background-color: #28a745; }
@@ -18,6 +45,12 @@
 </head>
 <body>
     <div class="container">
+        <!-- This is the new header element -->
+        <header id="user-header">
+            <div id="user-info">Loading user...</div>
+            <a id="sign-out-button" href="#">Sign Out</a>
+        </header>
+
         <h1>Admin Video Management</h1>
         <form id="add-video-form">
             <h3>Add New Video</h3>
