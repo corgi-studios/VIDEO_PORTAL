@@ -9,11 +9,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadVideos = async () => {
         try {
             const response = await fetch('/api/videos');
-            // If no videos exist yet, API returns 404, which is fine.
             if (response.ok) {
                 currentVideos = await response.json();
             } else {
+                // If the initial load fails, assume an empty list
                 currentVideos = [];
+                console.warn('Could not fetch video list, starting fresh.');
             }
             renderVideos();
         } catch (error) {
@@ -45,9 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const titleInput = document.getElementById('video-title');
         const idInput = document.getElementById('video-id');
-        currentVideos.push({ title: titleInput.value, id: idInput.value });
-        renderVideos();
-        form.reset();
+        if (titleInput.value && idInput.value) {
+            currentVideos.push({ title: titleInput.value, id: idInput.value });
+            renderVideos();
+            form.reset();
+        }
     });
 
     // Handles the "Save All Changes" button click
@@ -59,16 +62,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(currentVideos)
             });
+
+            // *** NEW DEBUGGING LOGIC IS HERE ***
+            // Check if the server response is successful
+            if (!response.ok) {
+                // If not, get the response as plain text to see what it is
+                const errorText = await response.text();
+                // Log the problematic text to the developer console
+                console.error('Server responded with an error:', errorText);
+                // Throw an error with the server's actual response
+                throw new Error(`Server returned an error. Check console for details.`);
+            }
+
+            // If the response was ok, parse it as JSON
             const result = await response.json();
-            if (response.ok) {
+            if (result.success) {
                 statusEl.textContent = 'Changes saved successfully!';
             } else {
-                throw new Error(result.error || 'Failed to save.');
+                throw new Error(result.error || 'An unknown error occurred.');
             }
+
         } catch (error) {
+            // Display the new, more informative error message
             statusEl.textContent = `Error: ${error.message}`;
+            console.error('Full error details:', error);
         }
-        setTimeout(() => statusEl.textContent = '', 3000);
+        
+        // Clear the status message after a few seconds
+        setTimeout(() => {
+            if (statusEl.textContent.startsWith('Changes saved')) {
+                 statusEl.textContent = '';
+            }
+        }, 3000);
     });
 
     // Initial load
