@@ -5,7 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Portal</title>
     <style>
-        body { font-family: sans-serif; background-color: #f4f4f4; color: #333; margin: 0; padding: 20px; }
+        body { font-family: sans-serif; background-color: #f4f4f4; color: #333; margin: 0; padding: 0; }
+        
+        /* New styles for the header */
+        #user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            padding: 10px 20px;
+            border-bottom: 1px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        #user-info {
+            font-size: 0.9em;
+            color: #555;
+        }
+        #sign-out-button {
+            background-color: #d9534f;
+            color: white;
+            padding: 8px 12px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 0.9em;
+            transition: background-color 0.2s;
+        }
+        #sign-out-button:hover {
+            background-color: #c9302c;
+        }
+        
+        .content-wrapper {
+            padding: 20px;
+        }
         h1 { text-align: center; color: #005cb9; }
         #video-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; max-width: 1200px; margin: auto; }
         .video-container { background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden; }
@@ -16,9 +47,18 @@
     </style>
 </head>
 <body>
-    <h1>Member Video Library</h1>
-    <div id="loading">Loading videos...</div>
-    <div id="video-gallery"></div>
+    <!-- This is the new header element -->
+    <header id="user-header">
+        <div id="user-info">Loading user...</div>
+        <a id="sign-out-button" href="#">Sign Out</a>
+    </header>
+
+    <div class="content-wrapper">
+        <h1>Member Video Library</h1>
+        <div id="loading">Loading videos...</div>
+        <div id="video-gallery"></div>
+    </div>
+
     <script src="/main.js"></script>
 </body>
 </html>
