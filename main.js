@@ -1,4 +1,38 @@
+// This new function handles fetching the user identity and setting up the header
+const setupUserHeader = async () => {
+    try {
+        // Cloudflare Access provides this special endpoint to get user identity
+        const response = await fetch('/cdn-cgi/access/get-identity');
+        if (!response.ok) {
+            // This can happen if the user is not logged in, fail silently.
+            document.getElementById('user-info').textContent = 'Not signed in.';
+            return;
+        }
+
+        const identity = await response.json();
+        const userInfoEl = document.getElementById('user-info');
+        const signOutButton = document.getElementById('sign-out-button');
+
+        // Display the user's email if available
+        if (identity && identity.email) {
+            userInfoEl.textContent = `Signed in as: ${identity.email}`;
+        }
+
+        // The sign-out URL is your domain followed by this special path
+        const domain = window.location.origin;
+        signOutButton.href = `${domain}/cdn-cgi/access/logout`;
+
+    } catch (error) {
+        console.error('Could not fetch user identity:', error);
+        document.getElementById('user-info').textContent = 'Error loading user.';
+    }
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
+    // Call the new function as soon as the page loads
+    setupUserHeader();
+
+    // The rest of your existing code remains the same
     const gallery = document.getElementById('video-gallery');
     const loading = document.getElementById('loading');
 
