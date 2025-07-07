@@ -1,25 +1,20 @@
-// This single file handles all API requests for your Pages project.
-// It uses Hono, a lightweight web framework.
+// This is the corrected, pure JavaScript version of the API file.
 
 import { Hono } from 'hono';
 import { handle } from 'hono/cloudflare-pages';
 
-// This defines the environment, including our KV binding.
-export interface Env {
-  Bindings: {
-    VIDEO_PORTAL_KV: KVNamespace;
-  };
-}
-
-const app = new Hono<Env>();
+// The TypeScript 'interface' has been removed to make this pure JavaScript.
+// The 'c.env' binding will still work correctly because you configured it in the dashboard.
+const app = new Hono();
 
 // --- PUBLIC/MEMBER ROUTE ---
-// Fetches the list of videos. The path is now just '/videos'
-// because the folder structure already puts it under '/api/'.
+// Fetches the list of videos.
 app.get('/videos', async (c) => {
+  // The 'c.env' object is automatically available in the context.
   const videoData = await c.env.VIDEO_PORTAL_KV.get('VIDEOS', { type: 'json' });
   if (!videoData) {
-    return c.json([]); // Return an empty array if no videos exist yet
+    // Return an empty array if no videos exist yet. This is better for the frontend.
+    return c.json([]);
   }
   return c.json(videoData);
 });
@@ -35,9 +30,10 @@ app.post('/admin/videos', async (c) => {
     await c.env.VIDEO_PORTAL_KV.put('VIDEOS', JSON.stringify(videos));
     return c.json({ success: true });
   } catch (e) {
+    console.error("Error in /admin/videos:", e);
     return c.json({ error: 'Failed to update videos.' }, 500);
   }
 });
 
-// This sets up the function to handle all requests
+// This sets up the function to handle all requests starting with /api
 export const onRequest = handle(app, '/api');
