@@ -1,18 +1,49 @@
+// This new function handles fetching the user identity and setting up the header
+const setupUserHeader = async () => {
+    try {
+        // Cloudflare Access provides this special endpoint to get user identity
+        const response = await fetch('/cdn-cgi/access/get-identity');
+        if (!response.ok) {
+            document.getElementById('user-info').textContent = 'Not signed in.';
+            return;
+        }
+
+        const identity = await response.json();
+        const userInfoEl = document.getElementById('user-info');
+        const signOutButton = document.getElementById('sign-out-button');
+
+        // Display the user's email if available
+        if (identity && identity.email) {
+            userInfoEl.textContent = `Signed in as: ${identity.email}`;
+        }
+
+        // The sign-out URL is your domain followed by this special path
+        const domain = window.location.origin;
+        signOutButton.href = `${domain}/cdn-cgi/access/logout`;
+
+    } catch (error) {
+        console.error('Could not fetch user identity:', error);
+        document.getElementById('user-info').textContent = 'Error loading user.';
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
+    // Call the new function as soon as the page loads
+    setupUserHeader();
+
+    // The rest of your existing code remains the same
     const form = document.getElementById('add-video-form');
     const videoListEl = document.getElementById('video-list');
     const saveButton = document.getElementById('save-changes');
     const statusEl = document.getElementById('status');
     let currentVideos = [];
 
-    // Fetches the initial list of videos from the server
     const loadVideos = async () => {
         try {
             const response = await fetch('/api/videos');
             if (response.ok) {
                 currentVideos = await response.json();
             } else {
-                // If the initial load fails, assume an empty list
                 currentVideos = [];
                 console.warn('Could not fetch video list, starting fresh.');
             }
@@ -23,7 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Renders the current list of videos in the admin panel
     const renderVideos = () => {
         videoListEl.innerHTML = '';
         currentVideos.forEach((video, index) => {
@@ -41,7 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // Handles the "Add Video" form submission
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         const titleInput = document.getElementById('video-title');
@@ -53,7 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Handles the "Save All Changes" button click
     saveButton.addEventListener('click', async () => {
         statusEl.textContent = 'Saving...';
         try {
@@ -63,18 +91,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(currentVideos)
             });
 
-            // *** NEW DEBUGGING LOGIC IS HERE ***
-            // Check if the server response is successful
             if (!response.ok) {
-                // If not, get the response as plain text to see what it is
                 const errorText = await response.text();
-                // Log the problematic text to the developer console
                 console.error('Server responded with an error:', errorText);
-                // Throw an error with the server's actual response
                 throw new Error(`Server returned an error. Check console for details.`);
             }
 
-            // If the response was ok, parse it as JSON
             const result = await response.json();
             if (result.success) {
                 statusEl.textContent = 'Changes saved successfully!';
@@ -83,12 +105,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
         } catch (error) {
-            // Display the new, more informative error message
             statusEl.textContent = `Error: ${error.message}`;
             console.error('Full error details:', error);
         }
         
-        // Clear the status message after a few seconds
         setTimeout(() => {
             if (statusEl.textContent.startsWith('Changes saved')) {
                  statusEl.textContent = '';
@@ -96,6 +116,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     });
 
-    // Initial load
     loadVideos();
 });
