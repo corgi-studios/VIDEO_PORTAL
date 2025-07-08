@@ -3,7 +3,7 @@ import { handle } from 'hono/cloudflare-pages';
 
 const app = new Hono();
 
-// Helper function to decode the JWT payload without external libraries
+// Helper function to decode the JWT payload
 const decodeJwtPayload = (token) => {
   try {
     const payload = token.split('.')[1];
@@ -16,32 +16,26 @@ const decodeJwtPayload = (token) => {
 };
 
 // --- Identity Endpoint ---
-// This endpoint reads the JWT from the header and returns the user's identity.
 app.get('/api/get-identity', async (c) => {
   const jwt = c.req.header('Cf-Access-Jwt-Assertion');
   if (!jwt) {
     return c.json({ error: "No identity token found." }, 401);
   }
-  
   const identity = decodeJwtPayload(jwt);
   if (!identity) {
     return c.json({ error: "Failed to decode identity token." }, 500);
   }
-
-  // Return only the necessary parts of the identity to the frontend
   return c.json({
       email: identity.email,
       idp: identity.idp
   });
 });
 
-
 // --- Secure Admin-Only Middleware ---
 const adminOnly = async (c, next) => {
   const jwt = c.req.header('Cf-Access-Jwt-Assertion');
-  if (!jwt) {
-    return c.json({ error: "No identity token found." }, 401);
-  }
+  if (!jwt) return c.json({ error: "No identity token found." }, 401);
+  
   const identity = decodeJwtPayload(jwt);
   if (identity && identity.idp && identity.idp.type === 'azureAD') {
     await next();
