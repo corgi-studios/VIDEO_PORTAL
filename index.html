@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Portal</title>
+    <!-- ADD THE TURNSTILE SCRIPT HERE -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8f9fa; color: #343a40; margin: 0; padding: 0; }
         #user-header { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 10px 20px; border-bottom: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
@@ -11,15 +13,26 @@
         #sign-out-button { background-color: #6c757d; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; font-size: 0.9em; }
         .content-wrapper { padding: 20px; }
         h1 { text-align: center; color: #005cb9; }
-        #video-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; max-width: 1200px; margin: auto; }
-        .video-container { background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; }
+        #video-gallery { display: grid; grid-template-columns: 1fr; gap: 40px; max-width: 900px; margin: auto; } /* Single column layout */
+        .video-entry { background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden; }
         .video-embed { position: relative; padding-bottom: 56.25%; height: 0; width: 100%; }
         .video-embed iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        .video-info { padding: 15px; flex-grow: 1; }
-        .video-info h3 { margin: 0 0 5px 0; }
-        .video-meta { font-size: 0.8em; color: #6c757d; margin-bottom: 10px; }
-        .video-description { font-size: 0.9em; line-height: 1.5; }
+        .video-details { padding: 20px; }
+        .video-details h3 { margin: 0 0 5px 0; font-size: 1.5em; }
+        .video-meta { font-size: 0.8em; color: #6c757d; margin-bottom: 15px; }
+        .video-description { font-size: 1em; line-height: 1.6; }
         #loading { text-align: center; font-size: 1.2em; padding: 40px; }
+
+        /* New Comment Section Styles */
+        .comments-section { border-top: 1px solid #eee; padding: 20px; }
+        .comments-section h4 { margin-top: 0; }
+        #comment-form textarea { width: calc(100% - 22px); padding: 10px; border: 1px solid #ccc; border-radius: 4px; resize: vertical; margin-bottom: 10px; }
+        #comment-form button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+        .comment { border-bottom: 1px solid #eee; padding: 10px 0; }
+        .comment-author { font-weight: bold; font-size: 0.9em; }
+        .comment-date { font-size: 0.8em; color: #6c757d; margin-left: 10px; }
+        .comment-text { margin: 5px 0; }
+        .comment-actions button { font-size: 0.8em; background: none; border: none; color: #007bff; cursor: pointer; padding: 0 5px; }
     </style>
 </head>
 <body>
