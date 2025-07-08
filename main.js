@@ -17,45 +17,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const initializeApp = async () => {
         signOutButton.href = `${window.location.origin}/cdn-cgi/access/logout`;
         try {
-            console.log("App Initializing: Attempting to fetch identity from /api/get-identity...");
             const response = await fetch('/api/get-identity', { credentials: 'include' });
-            
-            if (!response.ok) {
-                throw new Error(`API responded with status ${response.status}`);
-            }
-
             const identity = await response.json();
-
-            // --- CRITICAL DIAGNOSTIC LOGGING ---
-            console.log("--- IDENTITY CHECK ---");
-            console.log("Full identity object received from API:", identity);
-            
-            if (identity) {
-                console.log("Does identity.idp exist?", !!identity.idp);
-                if(identity.idp) {
-                    console.log("Value of identity.idp.type:", identity.idp.type);
-                    console.log("Is identity.idp.type === 'azureAD'?", identity.idp.type === 'azureAD');
-                } else {
-                    console.log("The 'idp' property is missing from the identity object.");
-                }
-            } else {
-                console.log("The identity object is null or undefined.");
-            }
-            console.log("--- END IDENTITY CHECK ---");
-            // --- END DIAGNOSTIC LOGGING ---
 
             if (identity && identity.email) {
                 userInfoEl.textContent = `Signed in as: ${identity.email}`;
             } else {
                 userInfoEl.textContent = 'Signed in';
             }
-            
             if (identity && identity.idp && identity.idp.type === 'azureAD') {
                 isAdmin = true;
                 adminPanel.style.display = 'block';
             }
         } catch(e) {
-            console.error("Critical error during initialization:", e);
+            console.error("Could not get identity from API", e);
             userInfoEl.textContent = 'Error verifying login.';
         }
         loadNotifications();
