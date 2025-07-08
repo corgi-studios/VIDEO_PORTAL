@@ -16,7 +16,7 @@ app.use('/api/*', cors({
 // This route will delete the potentially corrupt video list.
 app.get('/api/admin/clear-data', async (c) => {
     try {
-        await c.env.VIDEO_KV.delete('VIDEOS');
+        await c.env.VIDEO_PORTAL_KV.delete('VIDEOS');
         return c.text('Video data has been cleared successfully. You can now return to the admin panel.');
     } catch (e) {
         console.error('FAILED TO CLEAR DATA:', e);
@@ -27,14 +27,14 @@ app.get('/api/admin/clear-data', async (c) => {
 
 // --- Existing Video Routes ---
 app.get('/api/videos', async (c) => {
-    const videoData = await c.env.VIDEO_KV.get('VIDEOS', { type: 'json' });
+    const videoData = await c.env.VIDEO_PORTAL_KV.get('VIDEOS', { type: 'json' });
     return c.json(videoData || []);
 });
 
 app.post('/api/admin/videos', async (c) => {
     try {
         const videos = await c.req.json();
-        await c.env.VIDEO_KV.put('VIDEOS', JSON.stringify(videos));
+        await c.env.VIDEO_PORTAL_KV.put('VIDEOS', JSON.stringify(videos));
         return c.json({ success: true });
     } catch (e) {
         console.error("Error saving videos:", e);
