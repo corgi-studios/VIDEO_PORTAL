@@ -17,19 +17,24 @@ const decodeJwtPayload = (token) => {
 
 // --- Identity Endpoint ---
 app.get('/api/get-identity', async (c) => {
+  // Cloudflare Access automatically adds this header with the user's identity JWT.
   const jwt = c.req.header('Cf-Access-Jwt-Assertion');
   if (!jwt) {
     return c.json({ error: "No identity token found." }, 401);
   }
+  
   const identity = decodeJwtPayload(jwt);
   if (!identity) {
     return c.json({ error: "Failed to decode identity token." }, 500);
   }
+
+  // Return only the necessary parts of the identity to the frontend
   return c.json({
       email: identity.email,
       idp: identity.idp
   });
 });
+
 
 // --- Secure Admin-Only Middleware ---
 const adminOnly = async (c, next) => {
@@ -65,8 +70,7 @@ app.get('/api/notifications', async (c) => {
     return c.json(notificationData || []);
 });
 app.post('/api/admin/notifications', adminOnly, async (c) => {
-    const notifications = await c.req.json();
-    await c.env.VIDEO_PORTAL_KV.put('NOTIFICATIONS', JSON.stringify(notifications));
+    const notifications = await c.env.VIDEO_PORTAL_KV.put('NOTIFICATIONS', JSON.stringify(notifications));
     return c.json({ success: true });
 });
 
