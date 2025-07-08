@@ -35,6 +35,8 @@
         <header id="admin-header">
             <a id="sign-out-button" href="#">Sign Out</a>
         </header>
+
+        <!-- Video Management Section -->
         <div id="list-view">
             <h1>Admin Video Management</h1>
             <form id="add-video-form">
@@ -45,10 +47,12 @@
             </form>
             <hr>
             <h3>Current Videos (Click to Edit)</h3>
-            <ul id="video-list"></ul>
+            <ul id="video-list" class="video-list-item"></ul>
             <button id="save-all-changes" class="button button-success">Save Video Changes</button>
             <p id="status-videos"></p>
         </div>
+
+        <!-- Video Detail View (Hidden) -->
         <div id="detail-view">
             <a href="#" id="back-button" class="button button-secondary" style="margin-bottom: 20px;">&larr; Back to List</a>
             <h1 id="detail-title">Edit Video</h1>
@@ -62,7 +66,10 @@
                 <button type="submit" class="button button-primary">Save Details</button>
             </form>
         </div>
+        
         <hr>
+
+        <!-- New Notification Management Section -->
         <div id="notification-management">
             <h2>Notification Management</h2>
             <form id="add-notification-form">
@@ -77,6 +84,7 @@
             <button id="save-notifications" class="button button-success">Save Notification Changes</button>
             <p id="status-notifications"></p>
         </div>
+
     </div>
     <script src="/admin.js"></script>
 </body>
