@@ -6,30 +6,55 @@
     <title>Video Portal</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8f9fa; color: #343a40; margin: 0; padding: 0; }
-        #user-header { display: flex; justify-content: flex-end; align-items: center; background: #fff; padding: 10px 20px; border-bottom: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .container { max-width: 1200px; margin: auto; padding: 20px; }
+        header { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 10px 20px; border-bottom: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        #user-info { font-weight: 500; }
         #sign-out-button { background-color: #6c757d; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; font-size: 0.9em; }
-        .content-wrapper { padding: 20px; max-width: 1200px; margin: auto; }
-        h1 { text-align: center; color: #005cb9; }
+        
+        /* Admin Panel is hidden by default */
+        #admin-panel { display: none; background-color: #fff8e1; border: 1px solid #ffecb3; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+        
+        h1, h2, h3 { color: #212529; }
+        hr { border: 0; border-top: 1px solid #dee2e6; margin: 20px 0; }
+        input, textarea { width: calc(100% - 22px); padding: 10px; margin-bottom: 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 1em; }
+        button { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; }
+        .button-primary { background-color: #007bff; color: white; }
+        .button-success { background-color: #28a745; color: white; }
+        .button-danger { background-color: #dc3545; color: white; font-size: 0.8em; padding: 5px 8px; }
+
         #video-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-        .video-container { background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; }
-        .video-embed { position: relative; padding-bottom: 56.25%; height: 0; width: 100%; }
+        .video-container { background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden; }
+        .video-embed { position: relative; padding-bottom: 56.25%; height: 0; }
         .video-embed iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        .video-info { padding: 15px; flex-grow: 1; }
+        .video-info { padding: 15px; }
         .video-info h3 { margin: 0 0 5px 0; }
         .video-meta { font-size: 0.8em; color: #6c757d; margin-bottom: 10px; }
         .video-description { font-size: 0.9em; line-height: 1.5; }
-        #loading { text-align: center; font-size: 1.2em; padding: 40px; }
+        .admin-actions { display: none; margin-top: 10px; } /* Edit/Delete buttons hidden by default */
     </style>
 </head>
 <body>
-    <header id="user-header">
+    <header>
+        <div id="user-info">Loading...</div>
         <a id="sign-out-button" href="#">Sign Out</a>
     </header>
-    <div class="content-wrapper">
-        <h1>Member Video Library</h1>
-        <div id="loading">Loading videos...</div>
+
+    <div class="container">
+        <!-- This panel will only be shown to admins -->
+        <div id="admin-panel">
+            <h2>Admin Tools</h2>
+            <form id="add-video-form">
+                <input type="text" id="video-url" placeholder="YouTube URL or Video ID" required>
+                <input type="text" id="video-title" placeholder="Video Title" required>
+                <textarea id="video-description" placeholder="Video Description..."></textarea>
+                <button type="submit" class="button-primary">Add Video</button>
+            </form>
+        </div>
+
+        <h1>Video Library</h1>
         <div id="video-gallery"></div>
     </div>
+
     <script src="/main.js"></script>
 </body>
 </html>
