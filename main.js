@@ -12,32 +12,47 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Main Initialization Function ---
     const initializeApp = async () => {
+        console.log("App initializing...");
         // 1. Set up the sign-out button immediately
         signOutButton.href = `${window.location.origin}/cdn-cgi/access/logout`;
 
         // 2. Fetch user session to determine role
         try {
+            console.log("Attempting to fetch session data...");
             const response = await fetch('/cdn-cgi/access/get-session', { credentials: 'include' });
-            if (!response.ok) throw new Error('Could not get session.');
+            
+            console.log(`Session fetch response status: ${response.status}`);
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Could not get session. Status: ${response.status}, Response: ${errorText}`);
+            }
             
             const session = await response.json();
-            userInfoEl.textContent = `Signed in as: ${session.email}`;
+            
+            // *** NEW LOGGING: Print the entire session object to the console ***
+            console.log("Session data received:", session);
 
-            // *** THIS IS THE FIX: Check for 'azureAD' ***
-            if (session.idp && session.idp.type === 'azureAD') { 
+            userInfoEl.textContent = `Signed in as: ${session.email || 'Unknown User'}`;
+
+            // Check if the idp object and type property exist before comparing
+            if (session.idp && session.idp.type === 'azureAD') {
+                console.log("Admin detected! (idp.type is 'azureAD')");
                 isAdmin = true;
                 adminPanel.style.display = 'block'; // Show the admin panel
+            } else {
+                console.log("Admin not detected. Session IDP type is:", session.idp ? session.idp.type : "not present");
             }
         } catch (error) {
-            console.error("Session check failed:", error);
-            userInfoEl.textContent = 'Signed in';
+            // *** NEW LOGGING: Print the specific error to the console ***
+            console.error("A critical error occurred during session check:", error);
+            userInfoEl.textContent = 'Error verifying login status.';
         }
 
         // 3. Load and render videos
         loadAndRenderVideos();
     };
 
-    // --- Data and Rendering ---
+    // --- Data and Rendering (Unchanged) ---
     const loadAndRenderVideos = async () => {
         try {
             const response = await fetch('/api/videos', { credentials: 'include' });
@@ -54,29 +69,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentVideos.forEach((video, index) => {
             const container = document.createElement('div');
             container.className = 'video-container';
-            
-            const adminActionsHTML = isAdmin ? `
-                <div class="admin-actions" style="display: block;">
-                    <button class="button-danger" onclick="window.deleteVideo(${index})">Delete</button>
-                </div>
-            ` : '';
-
-            container.innerHTML = `
-                <div class="video-embed">
-                    <iframe src="https://www.youtube.com/embed/${video.id}" frameborder="0" allowfullscreen></iframe>
-                </div>
-                <div class="video-info">
-                    <h3>${video.title}</h3>
-                    <p class="video-meta">Posted: ${new Date(video.postedDate).toLocaleDateString()}</p>
-                    <p class="video-description">${video.description || 'No description.'}</p>
-                    ${adminActionsHTML}
-                </div>
-            `;
+            const adminActionsHTML = isAdmin ? `<div class="admin-actions" style="display: block;"><button class="button-danger" onclick="window.deleteVideo(${index})">Delete</button></div>` : '';
+            container.innerHTML = `<div class="video-embed"><iframe src="https://www.youtube.com/embed/${video.id}" frameborder="0" allowfullscreen></iframe></div><div class="video-info"><h3>${video.title}</h3><p class="video-meta">Posted: ${new Date(video.postedDate).toLocaleDateString()}</p><p class="video-description">${video.description || 'No description.'}</p>${adminActionsHTML}</div>`;
             gallery.appendChild(container);
         });
     };
 
-    // --- Admin Functions (exposed to window for onclick handlers) ---
+    // --- Admin Functions (Unchanged) ---
     window.deleteVideo = (index) => {
         if (confirm(`Are you sure you want to delete "${currentVideos[index].title}"?`)) {
             currentVideos.splice(index, 1);
@@ -93,20 +92,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 credentials: 'include'
             });
             if (!response.ok) throw new Error('Failed to save changes.');
-            loadAndRenderVideos(); // Refresh the gallery
+            loadAndRenderVideos();
         } catch (error) {
             console.error("Save failed:", error);
             alert('Error saving changes. Check console for details.');
         }
     };
 
-    // --- Event Listeners ---
+    // --- Event Listeners (Unchanged) ---
     addVideoForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const urlInput = document.getElementById('video-url');
         const titleInput = document.getElementById('video-title');
         const descriptionInput = document.getElementById('video-description');
-
         const extractVideoID = (urlOrId) => {
             if (urlOrId.includes('youtube.com') || urlOrId.includes('youtu.be')) {
                 try {
@@ -117,20 +115,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             return urlOrId;
         };
-
         const videoId = extractVideoID(urlInput.value);
         if (!videoId) {
             alert('Invalid YouTube URL or ID.');
             return;
         }
-
         currentVideos.unshift({
             id: videoId,
             title: titleInput.value,
             description: descriptionInput.value,
             postedDate: new Date().toISOString()
         });
-
         saveChanges();
         addVideoForm.reset();
     });
