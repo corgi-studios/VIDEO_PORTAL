@@ -17,21 +17,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // 2. Fetch user session to determine role
         try {
-            // *** THIS IS THE FIX: Using the correct, absolute URL you found ***
-            const response = await fetch('https://corgistudios.cloudflareaccess.com/cdn-cgi/access/get-session', { credentials: 'include' });
+            // *** THIS IS THE FIX: Using the /get-identity endpoint you discovered ***
+            const response = await fetch('https://corgistudios.cloudflareaccess.com/cdn-cgi/access/get-identity', { credentials: 'include' });
             
-            if (!response.ok) throw new Error('Could not get session.');
+            if (!response.ok) throw new Error('Could not get identity.');
             
-            const session = await response.json();
-            userInfoEl.textContent = `Signed in as: ${session.email}`;
+            const identity = await response.json();
+            userInfoEl.textContent = `Signed in as: ${identity.email}`;
 
             // Check if the idp object and type property exist before comparing
-            if (session.idp && session.idp.type === 'azureAD') {
+            if (identity.idp && identity.idp.type === 'azureAD') {
                 isAdmin = true;
                 adminPanel.style.display = 'block'; // Show the admin panel
             }
         } catch (error) {
-            console.error("Session check failed:", error);
+            console.error("Identity check failed:", error);
             userInfoEl.textContent = 'Error verifying login status.';
         }
 
