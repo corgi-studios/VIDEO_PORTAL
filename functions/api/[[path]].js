@@ -15,7 +15,10 @@ app.use('/api/*', cors({
 // --- Secure Admin-Only Middleware ---
 const adminOnly = async (c, next) => {
   try {
-    const identityResponse = await fetch(`${new URL(c.req.url).origin}/cdn-cgi/access/get-session`, { headers: c.req.headers });
+    // *** THIS IS THE FIX: Using the correct, absolute URL you found ***
+    // Note: We don't need to pass headers here because the worker is on Cloudflare's network
+    const identityResponse = await fetch('https://corgistudios.cloudflareaccess.com/cdn-cgi/access/get-session');
+    
     if (!identityResponse.ok) throw new Error('Failed to get session.');
     
     const identity = await identityResponse.json();
