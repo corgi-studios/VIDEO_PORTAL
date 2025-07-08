@@ -52,7 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Data & Rendering ---
     const loadVideos = async () => {
         try {
-            const response = await fetch('/api/videos');
+            // *** THE FIX IS HERE: Added 'credentials: include' to this fetch call ***
+            const response = await fetch('/api/videos', { credentials: 'include' });
             currentVideos = response.ok ? await response.json() : [];
             renderVideoList();
         } catch (error) {
