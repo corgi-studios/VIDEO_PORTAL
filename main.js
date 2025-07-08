@@ -17,8 +17,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const initializeApp = async () => {
         signOutButton.href = `${window.location.origin}/cdn-cgi/access/logout`;
         try {
-            const response = await fetch('/api/get-identity');
+            // *** THIS IS THE FIX ***
+            // We must include credentials for the browser to send the login cookie.
+            const response = await fetch('/api/get-identity', { credentials: 'include' });
             const identity = await response.json();
+
             if (identity.email) {
                 userInfoEl.textContent = `Signed in as: ${identity.email}`;
             } else {
@@ -38,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const loadNotifications = async () => {
         try {
-            const response = await fetch('/api/notifications');
+            const response = await fetch('/api/notifications', { credentials: 'include' });
             allNotifications = await response.json();
             renderNotifications();
         } catch (e) { console.error("Failed to load notifications", e); }
@@ -60,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const loadAndRenderVideos = async () => {
         try {
-            const response = await fetch('/api/videos');
+            const response = await fetch('/api/videos', { credentials: 'include' });
             allVideos = await response.json() || [];
             applyFiltersAndSort();
         } catch (error) {
@@ -110,7 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('/api/admin/videos', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(allVideos)
+                body: JSON.stringify(allVideos),
+                credentials: 'include'
             });
             if (!response.ok) throw new Error('Failed to save video changes.');
             applyFiltersAndSort();
@@ -122,7 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('/api/admin/notifications', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(allNotifications)
+                body: JSON.stringify(allNotifications),
+                credentials: 'include'
             });
             if (!response.ok) throw new Error('Failed to save notification changes.');
             loadNotifications();
@@ -171,7 +176,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const confirmation = prompt('This cannot be undone. To confirm, type DELETE:');
         if (confirmation === 'DELETE') {
             try {
-                const response = await fetch('/api/admin/videos/delete-all', { method: 'DELETE' });
+                const response = await fetch('/api/admin/videos/delete-all', { 
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
                 if (!response.ok) throw new Error('Failed to delete all videos.');
                 allVideos = [];
                 applyFiltersAndSort();
