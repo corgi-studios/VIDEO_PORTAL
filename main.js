@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <form class="comment-form" onsubmit="postComment(event, '${video.id}')">
                                 <textarea name="commentText" placeholder="Add a comment..." required></textarea>
                                 <!-- IMPORTANT: ADD YOUR TURNSTILE SITE KEY HERE -->
-                                <div class="cf-turnstile" data-sitekey="YOUR_SITE_KEY_HERE"></div>
+                                <div class="cf-turnstile" data-sitekey="Y0x4AAAAAABkRjS9M5B4qvN97"></div>
                                 <button type="submit">Post Comment</button>
                             </form>
                             <div class="comments-list-container"></div>
