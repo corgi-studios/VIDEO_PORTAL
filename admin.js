@@ -26,13 +26,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Utility Functions ---
     const extractVideoID = (urlOrId) => {
         if (urlOrId.includes('youtube.com') || urlOrId.includes('youtu.be')) {
-            const url = new URL(urlOrId);
-            if (url.hostname === 'youtu.be') {
-                return url.pathname.slice(1);
+            try {
+                const url = new URL(urlOrId);
+                if (url.hostname === 'youtu.be') {
+                    return url.pathname.slice(1);
+                }
+                return url.searchParams.get('v');
+            } catch (e) {
+                // If URL parsing fails, return null
+                return null;
             }
-            return url.searchParams.get('v');
         }
-        // Assume it's already an ID if it's not a recognizable URL
         return urlOrId;
     };
 
@@ -69,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
             deleteButton.textContent = 'Delete';
             deleteButton.className = 'button-danger';
             deleteButton.onclick = (e) => {
-                e.stopPropagation(); // Prevent li click event from firing
+                e.stopPropagation(); 
                 if (confirm('Are you sure you want to delete this video?')) {
                     currentVideos.splice(index, 1);
                     renderVideoList();
@@ -140,7 +144,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('/api/admin/videos', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(currentVideos)
+                body: JSON.stringify(currentVideos),
+                // *** THIS IS THE FIX ***
+                // This tells the browser to send the Cloudflare Access cookie with the request.
+                credentials: 'include' 
             });
             const result = await response.json();
             if (response.ok && result.success) {
