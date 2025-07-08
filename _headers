@@ -1,4 +1,2 @@
-# This is a comment. The line below sets the Content Security Policy.
-
 /*
-  Content-Security-Policy: script-src 'self' 'unsafe-inline' static.cloudflareinsights.com; frame-ancestors 'self' https://sites.google.com;
+  Content-Security-Policy: script-src 'self' 'unsafe-inline'; frame-ancestors 'self' https://sites.google.com;
