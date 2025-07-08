@@ -12,13 +12,31 @@ app.use('/api/*', cors({
   credentials: true,
 }));
 
-// GET route for users to fetch videos
+// --- NEW: DIAGNOSTIC TEST ROUTE ---
+// This route will test the connection to the KV Namespace.
+app.get('/api/test-kv', async (c) => {
+    try {
+        // Attempt to get a value from the KV store.
+        // It doesn't matter if the key exists or not, we just need to see if the command fails.
+        await c.env.VIDEO_PORTAL_KV.get('test-key');
+        
+        // If the command succeeds, return a success message.
+        return c.text('KV Namespace connection is OK.');
+
+    } catch (e) {
+        // If the command fails, it means the binding is broken.
+        console.error('KV BINDING TEST FAILED:', e);
+        return c.text(`KV Namespace connection FAILED. Error: ${e.message}`, 500);
+    }
+});
+
+
+// --- Existing Video Routes ---
 app.get('/api/videos', async (c) => {
     const videoData = await c.env.VIDEO_PORTAL_KV.get('VIDEOS', { type: 'json' });
     return c.json(videoData || []);
 });
 
-// POST route for admins to save videos
 app.post('/api/admin/videos', async (c) => {
     try {
         const videos = await c.req.json();
