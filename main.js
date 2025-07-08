@@ -1,33 +1,141 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    // Set up the sign-out button
-    document.getElementById('sign-out-button').href = `${window.location.origin}/cdn-cgi/access/logout`;
+    // --- Global State ---
+    let isAdmin = false;
+    let currentVideos = [];
 
+    // --- DOM Elements ---
+    const userInfoEl = document.getElementById('user-info');
+    const signOutButton = document.getElementById('sign-out-button');
+    const adminPanel = document.getElementById('admin-panel');
+    const addVideoForm = document.getElementById('add-video-form');
     const gallery = document.getElementById('video-gallery');
-    const loading = document.getElementById('loading');
-    try {
-        // Fetch the video list, including credentials for Cloudflare Access
-        const response = await fetch('/api/videos', { credentials: 'include' });
-        if (!response.ok) {
-            throw new Error(`Server responded with status: ${response.status}`);
-        }
-        
-        const videos = await response.json();
-        loading.style.display = 'none';
 
-        if (videos && videos.length > 0) {
-            videos.forEach(video => {
-                const container = document.createElement('div');
-                container.className = 'video-container';
-                const embedHTML = `<div class="video-embed"><iframe src="https://www.youtube.com/embed/${video.id}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
-                const infoHTML = `<div class="video-info"><h3>${video.title}</h3><p class="video-meta">Posted: ${new Date(video.postedDate).toLocaleDateString()}</p><p class="video-description">${video.description || 'No description available.'}</p></div>`;
-                container.innerHTML = embedHTML + infoHTML;
-                gallery.appendChild(container);
-            });
-        } else {
-            gallery.innerHTML = '<p>No videos are available at this time.</p>';
+    // --- Main Initialization Function ---
+    const initializeApp = async () => {
+        // 1. Set up the sign-out button immediately
+        signOutButton.href = `${window.location.origin}/cdn-cgi/access/logout`;
+
+        // 2. Fetch user session to determine role
+        try {
+            const response = await fetch('/cdn-cgi/access/get-session', { credentials: 'include' });
+            if (!response.ok) throw new Error('Could not get session.');
+            
+            const session = await response.json();
+            userInfoEl.textContent = `Signed in as: ${session.email}`;
+
+            // *** This is the core logic for detecting an admin ***
+            if (session.idp && session.idp.type === 'azure') { // Check if login type is Azure AD
+                isAdmin = true;
+                adminPanel.style.display = 'block'; // Show the admin panel
+            }
+        } catch (error) {
+            console.error("Session check failed:", error);
+            userInfoEl.textContent = 'Signed in';
         }
-    } catch (error) {
-        loading.textContent = 'Failed to load videos. Please check your connection and try again.';
-        console.error('Error fetching videos:', error);
-    }
+
+        // 3. Load and render videos
+        loadAndRenderVideos();
+    };
+
+    // --- Data and Rendering ---
+    const loadAndRenderVideos = async () => {
+        try {
+            const response = await fetch('/api/videos', { credentials: 'include' });
+            currentVideos = response.ok ? await response.json() : [];
+            renderGallery();
+        } catch (error) {
+            console.error("Failed to load videos:", error);
+            gallery.innerHTML = '<p>Could not load videos.</p>';
+        }
+    };
+
+    const renderGallery = () => {
+        gallery.innerHTML = '';
+        currentVideos.forEach((video, index) => {
+            const container = document.createElement('div');
+            container.className = 'video-container';
+            
+            // Show admin actions only if the user is an admin
+            const adminActionsHTML = isAdmin ? `
+                <div class="admin-actions" style="display: block;">
+                    <button class="button-danger" onclick="window.deleteVideo(${index})">Delete</button>
+                </div>
+            ` : '';
+
+            container.innerHTML = `
+                <div class="video-embed">
+                    <iframe src="https://www.youtube.com/embed/${video.id}" frameborder="0" allowfullscreen></iframe>
+                </div>
+                <div class="video-info">
+                    <h3>${video.title}</h3>
+                    <p class="video-meta">Posted: ${new Date(video.postedDate).toLocaleDateString()}</p>
+                    <p class="video-description">${video.description || 'No description.'}</p>
+                    ${adminActionsHTML}
+                </div>
+            `;
+            gallery.appendChild(container);
+        });
+    };
+
+    // --- Admin Functions (exposed to window for onclick handlers) ---
+    window.deleteVideo = (index) => {
+        if (confirm(`Are you sure you want to delete "${currentVideos[index].title}"?`)) {
+            currentVideos.splice(index, 1);
+            saveChanges();
+        }
+    };
+
+    const saveChanges = async () => {
+        try {
+            const response = await fetch('/api/admin/videos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(currentVideos),
+                credentials: 'include'
+            });
+            if (!response.ok) throw new Error('Failed to save changes.');
+            loadAndRenderVideos(); // Refresh the gallery
+        } catch (error) {
+            console.error("Save failed:", error);
+            alert('Error saving changes. Check console for details.');
+        }
+    };
+
+    // --- Event Listeners ---
+    addVideoForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const urlInput = document.getElementById('video-url');
+        const titleInput = document.getElementById('video-title');
+        const descriptionInput = document.getElementById('video-description');
+
+        const extractVideoID = (urlOrId) => {
+            if (urlOrId.includes('youtube.com') || urlOrId.includes('youtu.be')) {
+                try {
+                    const url = new URL(urlOrId);
+                    if (url.hostname === 'youtu.be') return url.pathname.slice(1);
+                    return url.searchParams.get('v');
+                } catch { return null; }
+            }
+            return urlOrId;
+        };
+
+        const videoId = extractVideoID(urlInput.value);
+        if (!videoId) {
+            alert('Invalid YouTube URL or ID.');
+            return;
+        }
+
+        currentVideos.unshift({
+            id: videoId,
+            title: titleInput.value,
+            description: descriptionInput.value,
+            postedDate: new Date().toISOString()
+        });
+
+        saveChanges();
+        addVideoForm.reset();
+    });
+
+    // --- Start the App ---
+    initializeApp();
 });
