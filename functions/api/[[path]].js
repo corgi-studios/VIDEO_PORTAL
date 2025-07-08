@@ -8,7 +8,7 @@ const app = new Hono();
 app.use('/api/*', cors({
   // *** THIS IS THE CHANGE ***
   // We've replaced 'video' with 'members' in the origin list.
-  origin: ['https://members.corgistudios.tech', 'https://unified-video-portal.pages.dev'], 
+  origin: ['https://members.corgistudios.tech', 'https://video-portal.pages.dev'], 
   allowMethods: ['GET', 'POST', 'OPTIONS'],
   allowHeaders: ['Content-Type'],
   credentials: true,
