@@ -1,28 +1,17 @@
-// This new function handles fetching the user identity and setting up the header
 const setupUserHeader = async () => {
     try {
-        // *** THE ONLY CHANGE IS HERE: using 'get-session' instead of 'get-identity' ***
         const response = await fetch('/cdn-cgi/access/get-session');
         if (!response.ok) {
             document.getElementById('user-info').textContent = 'Not signed in.';
             return;
         }
-
-        const session = await response.json();
-        const userInfoEl = document.getElementById('user-info');
-        const signOutButton = document.getElementById('sign-out-button');
-
-        // Display the user's email if available
-        if (session && session.email) {
-            userInfoEl.textContent = `Signed in as: ${session.email}`;
+        const identity = await response.json();
+        if (identity && identity.email) {
+            document.getElementById('user-info').textContent = `Signed in as: ${identity.email}`;
         }
-
-        // The sign-out URL is your domain followed by this special path
-        const domain = window.location.origin;
-        signOutButton.href = `${domain}/cdn-cgi/access/logout`;
-
+        document.getElementById('sign-out-button').href = `${window.location.origin}/cdn-cgi/access/logout`;
     } catch (error) {
-        console.error('Could not fetch user session:', error);
+        console.error('Could not fetch user identity:', error);
         document.getElementById('user-info').textContent = 'Error loading user.';
     }
 };
@@ -34,11 +23,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
         const response = await fetch('/api/videos');
-        if (!response.ok) {
-            throw new Error(`Error: ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`Error: ${response.statusText}`);
+        
         const videos = await response.json();
-
         loading.style.display = 'none';
 
         if (videos && videos.length > 0) {
@@ -46,15 +33,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const container = document.createElement('div');
                 container.className = 'video-container';
 
-                const title = document.createElement('h3');
-                title.textContent = video.title;
+                const embedHTML = `
+                    <div class="video-embed">
+                        <iframe src="https://www.youtube.com/embed/${video.id}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>`;
+                
+                const infoHTML = `
+                    <div class="video-info">
+                        <h3>${video.title}</h3>
+                        <p class="video-meta">Posted: ${new Date(video.postedDate).toLocaleDateString()}</p>
+                        <p class="video-description">${video.description || 'No description available.'}</p>
+                    </div>`;
 
-                const embed = document.createElement('div');
-                embed.className = 'video-embed';
-                embed.innerHTML = `<iframe src="https://www.youtube.com/embed/${video.id}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-
-                container.appendChild(title);
-                container.appendChild(embed);
+                container.innerHTML = embedHTML + infoHTML;
                 gallery.appendChild(container);
             });
         } else {
