@@ -4,11 +4,9 @@ import { cors } from 'hono/cors';
 
 const app = new Hono();
 
-// CORS middleware updated for the new domain.
+// CORS middleware
 app.use('/api/*', cors({
-  // *** THIS IS THE CHANGE ***
-  // We've replaced 'video' with 'members' in the origin list.
-  origin: ['https://members.corgistudios.tech', 'https://video-portal.pages.dev'], 
+  origin: ['https://members.corgistudios.tech', 'https://video-portal.pages.dev'],
   allowMethods: ['GET', 'POST', 'OPTIONS'],
   allowHeaders: ['Content-Type'],
   credentials: true,
@@ -23,7 +21,7 @@ const adminOnly = async (c, next) => {
     const identity = await identityResponse.json();
 
     // Securely check if the Identity Provider type is Azure AD
-    if (identity.idp && identity.idp.type === 'azure') {
+    if (identity.idp && identity.idp.type === 'azureAD') {
       await next(); // Proceed if admin
     } else {
       return c.json({ error: 'Forbidden: Admin access required.' }, 403);
