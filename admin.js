@@ -1,91 +1,211 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel</title>
-    <style>
-         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8f9fa; color: #343a40; margin: 0; padding: 20px; }
-         .container { max-width: 800px; margin: auto; background: #fff; padding: 20px 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-         #admin-header { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #dee2e6; }
-         #sign-out-button { background-color: #6c757d; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; font-size: 0.9em; }
-         h1, h3 { color: #212529; }
-         h1 { text-align: center; margin-top: 0; }
-         hr { border: 0; border-top: 1px solid #dee2e6; margin: 30px 0; }
-         input, textarea { width: calc(100% - 22px); padding: 10px; margin-bottom: 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 1em; }
-         textarea { resize: vertical; min-height: 80px; }
-         button, .button { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; text-decoration: none; display: inline-block; text-align: center; }
-         .button-primary { background-color: #007bff; color: white; }
-         .button-success { background-color: #28a745; color: white; }
-         .button-secondary { background-color: #6c757d; color: white; }
-         .button-danger { background-color: #dc3545; color: white; font-size: 0.8em; padding: 5px 8px; }
-         #video-list, #notification-list { list-style-type: none; padding: 0; }
-         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; }
-         .list-item > span { font-weight: 500; flex-grow: 1; }
-         .video-list-item { cursor: pointer; transition: background-color 0.2s; }
-         .video-list-item:hover { background-color: #f1f3f5; }
-         #detail-view { display: none; }
-         .video-preview { position: relative; padding-bottom: 56.25%; height: 0; margin-bottom: 20px; }
-         .video-preview iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 8px; }
-         .detail-meta { font-size: 0.9em; color: #6c757d; margin-bottom: 15px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <header id="admin-header">
-            <a id="sign-out-button" href="#">Sign Out</a>
-        </header>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- State Variables ---
+    let currentVideos = [];
+    let currentlyEditingIndex = -1;
+    let currentNotifications = [];
 
-        <!-- Video Management Section -->
-        <div id="list-view">
-            <h1>Admin Video Management</h1>
-            <form id="add-video-form">
-                <h3>Add New Video</h3>
-                <input type="text" id="video-url" placeholder="Enter YouTube URL or Video ID" required>
-                <input type="text" id="video-title" placeholder="Video Title" required>
-                <button type="submit" class="button button-primary">Add Video</button>
-            </form>
-            <hr>
-            <h3>Current Videos (Click to Edit)</h3>
-            <ul id="video-list" class="video-list-item"></ul>
-            <button id="save-all-changes" class="button button-success">Save Video Changes</button>
-            <p id="status-videos"></p>
-        </div>
+    // --- Video Management Elements ---
+    const listView = document.getElementById('list-view');
+    const detailView = document.getElementById('detail-view');
+    const addVideoForm = document.getElementById('add-video-form');
+    const videoListEl = document.getElementById('video-list');
+    const saveAllButton = document.getElementById('save-all-changes');
+    const statusVideosEl = document.getElementById('status-videos');
+    const backButton = document.getElementById('back-button');
+    const detailForm = document.getElementById('detail-form');
+    // ... (other video detail elements)
 
-        <!-- Video Detail View (Hidden) -->
-        <div id="detail-view">
-            <a href="#" id="back-button" class="button button-secondary" style="margin-bottom: 20px;">&larr; Back to List</a>
-            <h1 id="detail-title">Edit Video</h1>
-            <div class="video-preview"><iframe id="detail-video-embed" src="" frameborder="0" allowfullscreen></iframe></div>
-            <p class="detail-meta">Posted on: <span id="detail-posted-date"></span></p>
-            <form id="detail-form">
-                <label for="detail-edit-title">Title</label>
-                <input type="text" id="detail-edit-title" required>
-                <label for="detail-edit-description">Description</label>
-                <textarea id="detail-edit-description"></textarea>
-                <button type="submit" class="button button-primary">Save Details</button>
-            </form>
-        </div>
-        
-        <hr>
+    // --- Notification Management Elements ---
+    const addNotificationForm = document.getElementById('add-notification-form');
+    const notificationListEl = document.getElementById('notification-list');
+    const saveNotificationsButton = document.getElementById('save-notifications');
+    const statusNotificationsEl = document.getElementById('status-notifications');
 
-        <!-- New Notification Management Section -->
-        <div id="notification-management">
-            <h2>Notification Management</h2>
-            <form id="add-notification-form">
-                <h3>Add New Notification</h3>
-                <input type="text" id="notification-title" placeholder="Notification Title" required>
-                <textarea id="notification-content" placeholder="Notification content..." required></textarea>
-                <button type="submit" class="button button-primary">Add Notification</button>
-            </form>
-            <hr>
-            <h3>Current Notifications</h3>
-            <ul id="notification-list"></ul>
-            <button id="save-notifications" class="button button-success">Save Notification Changes</button>
-            <p id="status-notifications"></p>
-        </div>
+    // --- General Elements ---
+    const signOutButton = document.getElementById('sign-out-button');
+    signOutButton.href = `${window.location.origin}/cdn-cgi/access/logout`;
 
-    </div>
-    <script src="/admin.js"></script>
-</body>
-</html>
+    // --- Video Functions ---
+    const loadVideos = async () => {
+        try {
+            const response = await fetch('/api/videos', { credentials: 'include' });
+            currentVideos = response.ok ? await response.json() : [];
+            renderVideoList();
+        } catch (error) { statusVideosEl.textContent = 'Could not load videos.'; }
+    };
+    const renderVideoList = () => { /* ... (this function is unchanged) ... */ };
+    // ... (all other video-related functions are unchanged) ...
+
+    // --- NEW: Notification Functions ---
+    const loadNotifications = async () => {
+        try {
+            const response = await fetch('/api/notifications', { credentials: 'include' });
+            currentNotifications = response.ok ? await response.json() : [];
+            renderNotificationList();
+        } catch (error) { statusNotificationsEl.textContent = 'Could not load notifications.'; }
+    };
+
+    const renderNotificationList = () => {
+        notificationListEl.innerHTML = '';
+        currentNotifications.forEach((note, index) => {
+            const li = document.createElement('li');
+            li.className = 'list-item';
+            li.innerHTML = `<span><strong>${note.title}</strong>: ${note.content.substring(0, 50)}...</span>`;
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.className = 'button-danger';
+            deleteButton.onclick = () => {
+                currentNotifications.splice(index, 1);
+                renderNotificationList();
+            };
+            li.appendChild(deleteButton);
+            notificationListEl.appendChild(li);
+        });
+    };
+
+    // --- Event Listeners ---
+    addNotificationForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const titleInput = document.getElementById('notification-title');
+        const contentInput = document.getElementById('notification-content');
+        currentNotifications.unshift({
+            title: titleInput.value,
+            content: contentInput.value,
+            date: new Date().toISOString()
+        });
+        renderNotificationList();
+        addNotificationForm.reset();
+    });
+
+    saveNotificationsButton.addEventListener('click', async () => {
+        statusNotificationsEl.textContent = 'Saving...';
+        try {
+            const response = await fetch('/api/admin/notifications', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(currentNotifications),
+                credentials: 'include'
+            });
+            if (!response.ok) throw new Error('Server responded with an error.');
+            statusNotificationsEl.textContent = 'Notifications saved successfully!';
+        } catch (error) {
+            statusNotificationsEl.textContent = `Error: ${error.message}`;
+        }
+        setTimeout(() => statusNotificationsEl.textContent = '', 3000);
+    });
+
+    // ... (all existing video event listeners are unchanged) ...
+
+    // --- Initial Load ---
+    loadVideos();
+    loadNotifications();
+
+    // NOTE: The following is the unchanged video logic for brevity.
+    // Make sure it's included in your final file.
+    const extractVideoID = (urlOrId) => {
+        if (urlOrId.includes('youtube.com') || urlOrId.includes('youtu.be')) {
+            try {
+                const url = new URL(urlOrId);
+                if (url.hostname === 'youtu.be') return url.pathname.slice(1);
+                return url.searchParams.get('v');
+            } catch (e) { return null; }
+        }
+        return urlOrId;
+    };
+    const switchView = (view) => {
+        if (view === 'detail') {
+            listView.style.display = 'none';
+            detailView.style.display = 'block';
+        } else {
+            detailView.style.display = 'none';
+            listView.style.display = 'block';
+        }
+    };
+    renderVideoList = () => {
+        videoListEl.innerHTML = '';
+        currentVideos.forEach((video, index) => {
+            const li = document.createElement('li');
+            li.className = 'video-list-item list-item';
+            li.innerHTML = `<span>${video.title}</span>`;
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.className = 'button-danger';
+            deleteButton.onclick = (e) => {
+                e.stopPropagation();
+                if (confirm('Are you sure you want to delete this video?')) {
+                    currentVideos.splice(index, 1);
+                    renderVideoList();
+                }
+            };
+            li.onclick = () => showDetailView(index);
+            li.appendChild(deleteButton);
+            videoListEl.appendChild(li);
+        });
+    };
+    const showDetailView = (index) => {
+        currentlyEditingIndex = index;
+        const video = currentVideos[index];
+        const detailVideoEmbed = document.getElementById('detail-video-embed');
+        const detailTitle = document.getElementById('detail-title');
+        const detailPostedDate = document.getElementById('detail-posted-date');
+        const detailEditTitle = document.getElementById('detail-edit-title');
+        const detailEditDescription = document.getElementById('detail-edit-description');
+        detailTitle.textContent = `Edit: ${video.title}`;
+        detailVideoEmbed.src = `https://www.youtube.com/embed/${video.id}`;
+        detailPostedDate.textContent = new Date(video.postedDate).toLocaleDateString();
+        detailEditTitle.value = video.title;
+        detailEditDescription.value = video.description || '';
+        switchView('detail');
+    };
+    addVideoForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const urlInput = document.getElementById('video-url');
+        const titleInput = document.getElementById('video-title');
+        const videoId = extractVideoID(urlInput.value);
+        if (!videoId) {
+            alert('Could not extract a valid YouTube Video ID.');
+            return;
+        }
+        currentVideos.unshift({
+            id: videoId,
+            title: titleInput.value,
+            description: '',
+            postedDate: new Date().toISOString()
+        });
+        renderVideoList();
+        addVideoForm.reset();
+    });
+    detailForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (currentlyEditingIndex > -1) {
+            currentVideos[currentlyEditingIndex].title = document.getElementById('detail-edit-title').value;
+            currentVideos[currentlyEditingIndex].description = document.getElementById('detail-edit-description').value;
+            renderVideoList();
+            switchView('list');
+        }
+    });
+    backButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchView('list');
+    });
+    saveAllButton.addEventListener('click', async () => {
+        statusVideosEl.textContent = 'Saving...';
+        try {
+            const response = await fetch('/api/admin/videos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(currentVideos),
+                credentials: 'include'
+            });
+            const result = await response.json();
+            if (response.ok && result.success) {
+                statusVideosEl.textContent = 'Video changes saved successfully!';
+            } else {
+                throw new Error(result.error || 'Failed to save.');
+            }
+        } catch (error) {
+            statusVideosEl.textContent = `Error: ${error.message}`;
+        }
+        setTimeout(() => statusVideosEl.textContent = '', 3000);
+    });
+});
