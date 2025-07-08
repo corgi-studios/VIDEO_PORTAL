@@ -10,7 +10,6 @@ const decodeJwtPayload = (token) => {
     const decoded = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
     return JSON.parse(decoded);
   } catch (e) {
-    console.error("Failed to decode JWT:", e);
     return null;
   }
 };
@@ -19,17 +18,23 @@ const decodeJwtPayload = (token) => {
 app.get('/api/get-identity', async (c) => {
   const jwt = c.req.header('Cf-Access-Jwt-Assertion');
   if (!jwt) {
-    return c.json({ error: "No identity token found." }, 401);
+    return c.json({ email: null, isAdmin: false });
   }
+  
   const identity = decodeJwtPayload(jwt);
   if (!identity) {
-    return c.json({ error: "Failed to decode identity token." }, 500);
+    return c.json({ email: null, isAdmin: false });
   }
+
+  // Check if the user is an admin and return a simple boolean flag
+  const isAdmin = (identity.idp && identity.idp.type === 'azureAD');
+  
   return c.json({
       email: identity.email,
-      idp: identity.idp
+      isAdmin: isAdmin
   });
 });
+
 
 // --- Secure Admin-Only Middleware ---
 const adminOnly = async (c, next) => {
@@ -65,7 +70,7 @@ app.get('/api/notifications', async (c) => {
     return c.json(notificationData || []);
 });
 app.post('/api/admin/notifications', adminOnly, async (c) => {
-    const notifications = await c.req.json();
+    const notifications = await c.env.VIDEO_PORTAL_KV.get('NOTIFICATIONS', { type: 'json' });
     await c.env.VIDEO_PORTAL_KV.put('NOTIFICATIONS', JSON.stringify(notifications));
     return c.json({ success: true });
 });
