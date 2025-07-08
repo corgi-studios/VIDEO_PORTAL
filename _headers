@@ -1,2 +1,2 @@
 /*
-  Content-Security-Policy: frame-ancestors 'self' https://sites.google.com;
+  Content-Security-Policy: script-src 'self' 'unsafe-inline'; frame-ancestors 'self' https://sites.google.com;
