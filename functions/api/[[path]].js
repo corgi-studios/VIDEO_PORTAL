@@ -4,9 +4,11 @@ import { cors } from 'hono/cors';
 
 const app = new Hono();
 
-// CORS middleware
+// CORS middleware updated for the new domain.
 app.use('/api/*', cors({
-  origin: ['https://video.corgistudios.tech', 'https://video-portal.pages.dev'],
+  // *** THIS IS THE CHANGE ***
+  // We've replaced 'video' with 'members' in the origin list.
+  origin: ['https://members.corgistudios.tech', 'https://unified-video-portal.pages.dev'], 
   allowMethods: ['GET', 'POST', 'OPTIONS'],
   allowHeaders: ['Content-Type'],
   credentials: true,
