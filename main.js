@@ -12,39 +12,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Main Initialization Function ---
     const initializeApp = async () => {
-        console.log("App initializing...");
         // 1. Set up the sign-out button immediately
         signOutButton.href = `${window.location.origin}/cdn-cgi/access/logout`;
 
         // 2. Fetch user session to determine role
         try {
-            console.log("Attempting to fetch session data...");
-            const response = await fetch('/cdn-cgi/access/get-session', { credentials: 'include' });
+            // *** THIS IS THE FIX: Using the correct, absolute URL you found ***
+            const response = await fetch('https://corgistudios.cloudflareaccess.com/cdn-cgi/access/get-session', { credentials: 'include' });
             
-            console.log(`Session fetch response status: ${response.status}`);
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Could not get session. Status: ${response.status}, Response: ${errorText}`);
-            }
+            if (!response.ok) throw new Error('Could not get session.');
             
             const session = await response.json();
-            
-            // *** NEW LOGGING: Print the entire session object to the console ***
-            console.log("Session data received:", session);
-
-            userInfoEl.textContent = `Signed in as: ${session.email || 'Unknown User'}`;
+            userInfoEl.textContent = `Signed in as: ${session.email}`;
 
             // Check if the idp object and type property exist before comparing
             if (session.idp && session.idp.type === 'azureAD') {
-                console.log("Admin detected! (idp.type is 'azureAD')");
                 isAdmin = true;
                 adminPanel.style.display = 'block'; // Show the admin panel
-            } else {
-                console.log("Admin not detected. Session IDP type is:", session.idp ? session.idp.type : "not present");
             }
         } catch (error) {
-            // *** NEW LOGGING: Print the specific error to the console ***
-            console.error("A critical error occurred during session check:", error);
+            console.error("Session check failed:", error);
             userInfoEl.textContent = 'Error verifying login status.';
         }
 
@@ -52,7 +39,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadAndRenderVideos();
     };
 
-    // --- Data and Rendering (Unchanged) ---
+    // --- Data and Rendering ---
     const loadAndRenderVideos = async () => {
         try {
             const response = await fetch('/api/videos', { credentials: 'include' });
@@ -75,7 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     };
 
-    // --- Admin Functions (Unchanged) ---
+    // --- Admin Functions ---
     window.deleteVideo = (index) => {
         if (confirm(`Are you sure you want to delete "${currentVideos[index].title}"?`)) {
             currentVideos.splice(index, 1);
@@ -99,7 +86,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // --- Event Listeners (Unchanged) ---
+    // --- Event Listeners ---
     addVideoForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const urlInput = document.getElementById('video-url');
