@@ -1,50 +1,19 @@
-const setupUserHeader = () => {
-    const domain = window.location.origin;
-    document.getElementById('sign-out-button').href = `${domain}/cdn-cgi/access/logout`;
-};
-
-const loadNotifications = async () => {
-    const notificationArea = document.getElementById('notification-area');
-    try {
-        const response = await fetch('/api/notifications', { credentials: 'include' });
-        if (!response.ok) {
-            notificationArea.style.display = 'none';
-            return;
-        }
-        const notifications = await response.json();
-        if (notifications && notifications.length > 0) {
-            notificationArea.innerHTML = '';
-            notifications.forEach(note => {
-                const noteEl = document.createElement('div');
-                noteEl.className = 'notification';
-                noteEl.innerHTML = `
-                    <h4>${note.title}</h4>
-                    <p>${note.content}</p>
-                    <div class="notification-date">Posted: ${new Date(note.date).toLocaleDateString()}</div>
-                `;
-                notificationArea.appendChild(noteEl);
-            });
-        } else {
-            notificationArea.style.display = 'none';
-        }
-    } catch (error) {
-        console.error('Failed to load notifications:', error);
-        notificationArea.style.display = 'none';
-    }
-};
-
 document.addEventListener('DOMContentLoaded', async () => {
-    setupUserHeader();
-    loadNotifications();
+    // Set up the sign-out button
+    document.getElementById('sign-out-button').href = `${window.location.origin}/cdn-cgi/access/logout`;
 
     const gallery = document.getElementById('video-gallery');
     const loading = document.getElementById('loading');
     try {
+        // Fetch the video list, including credentials for Cloudflare Access
         const response = await fetch('/api/videos', { credentials: 'include' });
-        if (!response.ok) throw new Error(`Error: ${response.statusText}`);
+        if (!response.ok) {
+            throw new Error(`Server responded with status: ${response.status}`);
+        }
         
         const videos = await response.json();
         loading.style.display = 'none';
+
         if (videos && videos.length > 0) {
             videos.forEach(video => {
                 const container = document.createElement('div');
@@ -58,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             gallery.innerHTML = '<p>No videos are available at this time.</p>';
         }
     } catch (error) {
-        loading.textContent = 'Failed to load videos. Please try again later.';
+        loading.textContent = 'Failed to load videos. Please check your connection and try again.';
         console.error('Error fetching videos:', error);
     }
 });
