@@ -7,53 +7,15 @@
     <style>
          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8f9fa; color: #343a40; margin: 0; padding: 20px; }
          .container { max-width: 800px; margin: auto; background: #fff; padding: 20px 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-         
-         /* Header styles */
-         #admin-header {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #dee2e6;
-         }
-         #sign-out-button {
-            background-color: #6c757d;
-            color: white;
-            padding: 8px 15px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-size: 0.9em;
-            transition: background-color 0.2s;
-         }
+         #admin-header { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #dee2e6; }
+         #sign-out-button { background-color: #6c757d; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; font-size: 0.9em; transition: background-color 0.2s; }
          #sign-out-button:hover { background-color: #5a6268; }
-
          h1, h3 { color: #212529; }
          h1 { text-align: center; margin-top: 0; }
          hr { border: 0; border-top: 1px solid #dee2e6; margin: 20px 0; }
-         
-         /* Form & Input styles */
-         input, textarea {
-             width: calc(100% - 22px);
-             padding: 10px;
-             margin-bottom: 10px;
-             border: 1px solid #ced4da;
-             border-radius: 4px;
-             font-size: 1em;
-         }
+         input, textarea { width: calc(100% - 22px); padding: 10px; margin-bottom: 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 1em; }
          textarea { resize: vertical; min-height: 100px; }
-         
-         /* Button styles */
-         button, .button {
-             padding: 10px 15px;
-             border: none;
-             border-radius: 4px;
-             cursor: pointer;
-             font-size: 1em;
-             text-decoration: none;
-             display: inline-block;
-             text-align: center;
-         }
+         button, .button { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; text-decoration: none; display: inline-block; text-align: center; }
          .button-primary { background-color: #007bff; color: white; }
          .button-primary:hover { background-color: #0069d9; }
          .button-success { background-color: #28a745; color: white; }
@@ -61,23 +23,11 @@
          .button-secondary { background-color: #6c757d; color: white; }
          .button-secondary:hover { background-color: #5a6268; }
          .button-danger { background-color: #dc3545; color: white; font-size: 0.8em; padding: 5px 8px; }
-         
-         /* Video list styles */
          #video-list { list-style-type: none; padding: 0; }
-         .video-list-item {
-             display: flex;
-             justify-content: space-between;
-             align-items: center;
-             padding: 12px;
-             border-bottom: 1px solid #eee;
-             cursor: pointer;
-             transition: background-color 0.2s;
-         }
+         .video-list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s; }
          .video-list-item:hover { background-color: #f1f3f5; }
          .video-list-item span { font-weight: 500; }
-
-         /* Detail view styles */
-         #detail-view { display: none; } /* Hidden by default */
+         #detail-view { display: none; }
          .video-preview { position: relative; padding-bottom: 56.25%; height: 0; margin-bottom: 20px; }
          .video-preview iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 8px; }
          .detail-meta { font-size: 0.9em; color: #6c757d; margin-bottom: 15px; }
@@ -88,8 +38,6 @@
         <header id="admin-header">
             <a id="sign-out-button" href="#">Sign Out</a>
         </header>
-
-        <!-- View #1: The main list of videos -->
         <div id="list-view">
             <h1>Admin Video Management</h1>
             <form id="add-video-form">
@@ -104,8 +52,6 @@
             <button id="save-all-changes" class="button button-success">Save All Changes</button>
             <p id="status"></p>
         </div>
-
-        <!-- View #2: The detail/edit page for a single video -->
         <div id="detail-view">
             <a href="#" id="back-button" class="button button-secondary" style="margin-bottom: 20px;">&larr; Back to List</a>
             <h1 id="detail-title">Edit Video</h1>
@@ -116,10 +62,8 @@
             <form id="detail-form">
                 <label for="detail-edit-title">Title</label>
                 <input type="text" id="detail-edit-title" required>
-                
                 <label for="detail-edit-description">Description</label>
                 <textarea id="detail-edit-description"></textarea>
-                
                 <button type="submit" class="button button-primary">Save Details</button>
             </form>
         </div>
