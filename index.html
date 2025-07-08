@@ -6,26 +6,8 @@
     <title>Video Portal</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8f9fa; color: #343a40; margin: 0; padding: 0; }
-        
-        /* The header now just pushes the button to the right */
-        #user-header {
-            display: flex;
-            justify-content: flex-end; /* Pushes content to the right */
-            align-items: center;
-            background: #fff;
-            padding: 10px 20px;
-            border-bottom: 1px solid #ddd;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        #sign-out-button {
-            background-color: #6c757d;
-            color: white;
-            padding: 8px 12px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-size: 0.9em;
-        }
-        
+        #user-header { display: flex; justify-content: flex-end; align-items: center; background: #fff; padding: 10px 20px; border-bottom: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        #sign-out-button { background-color: #6c757d; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; font-size: 0.9em; }
         .content-wrapper { padding: 20px; }
         h1 { text-align: center; color: #005cb9; }
         #video-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; max-width: 1200px; margin: auto; }
@@ -41,7 +23,6 @@
 </head>
 <body>
     <header id="user-header">
-        <!-- The user info div has been removed -->
         <a id="sign-out-button" href="#">Sign Out</a>
     </header>
     <div class="content-wrapper">
