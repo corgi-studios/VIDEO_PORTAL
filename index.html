@@ -9,21 +9,6 @@
         #user-header { display: flex; justify-content: flex-end; align-items: center; background: #fff; padding: 10px 20px; border-bottom: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         #sign-out-button { background-color: #6c757d; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; font-size: 0.9em; }
         .content-wrapper { padding: 20px; max-width: 1200px; margin: auto; }
-        
-        /* Notification Area Styles */
-        #notification-area {
-            background-color: #e9f5ff;
-            border: 1px solid #b8d6eb;
-            border-radius: 8px;
-            margin: 20px auto;
-            padding: 10px 20px;
-        }
-        .notification { border-bottom: 1px solid #d0e0ee; padding: 15px 0; }
-        .notification:last-child { border-bottom: none; }
-        .notification h4 { margin: 0 0 5px 0; color: #0056b3; }
-        .notification p { margin: 0; }
-        .notification-date { font-size: 0.8em; color: #6c757d; margin-top: 5px; }
-
         h1 { text-align: center; color: #005cb9; }
         #video-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
         .video-container { background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; }
@@ -41,9 +26,6 @@
         <a id="sign-out-button" href="#">Sign Out</a>
     </header>
     <div class="content-wrapper">
-        <!-- Notification Area -->
-        <div id="notification-area"></div>
-
         <h1>Member Video Library</h1>
         <div id="loading">Loading videos...</div>
         <div id="video-gallery"></div>
