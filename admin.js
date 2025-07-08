@@ -1,12 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // ... (all existing elements are the same) ...
+    // Page Views
     const listView = document.getElementById('list-view');
     const detailView = document.getElementById('detail-view');
+
+    // --- List View Elements ---
     const addVideoForm = document.getElementById('add-video-form');
     const videoListEl = document.getElementById('video-list');
     const saveAllButton = document.getElementById('save-all-changes');
     const statusEl = document.getElementById('status');
     const signOutButton = document.getElementById('sign-out-button');
+
+    // --- Detail View Elements ---
     const backButton = document.getElementById('back-button');
     const detailForm = document.getElementById('detail-form');
     const detailVideoEmbed = document.getElementById('detail-video-embed');
@@ -15,26 +19,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const detailEditTitle = document.getElementById('detail-edit-title');
     const detailEditDescription = document.getElementById('detail-edit-description');
 
+    // --- State Management ---
     let currentVideos = [];
     let currentlyEditingIndex = -1;
 
-    // --- NEW: Add a container for comments in the detail view ---
-    const commentsAdminContainer = document.createElement('div');
-    commentsAdminContainer.innerHTML = '<hr><h3>Comments</h3><div id="admin-comments-list"></div>';
-    detailView.appendChild(commentsAdminContainer);
-    const adminCommentsList = document.getElementById('admin-comments-list');
-
-    // --- Utility Functions (unchanged) ---
+    // --- Utility Functions ---
     const extractVideoID = (urlOrId) => {
         if (urlOrId.includes('youtube.com') || urlOrId.includes('youtu.be')) {
             try {
                 const url = new URL(urlOrId);
-                if (url.hostname === 'youtu.be') return url.pathname.slice(1);
+                if (url.hostname === 'youtu.be') {
+                    return url.pathname.slice(1);
+                }
                 return url.searchParams.get('v');
-            } catch (e) { return null; }
+            } catch (e) {
+                return null;
+            }
         }
         return urlOrId;
     };
+
     const switchView = (view) => {
         if (view === 'detail') {
             listView.style.display = 'none';
@@ -63,96 +67,57 @@ document.addEventListener('DOMContentLoaded', () => {
             const li = document.createElement('li');
             li.className = 'video-list-item';
             li.innerHTML = `<span>${video.title}</span>`;
+            
             const deleteButton = document.createElement('button');
             deleteButton.textContent = 'Delete';
             deleteButton.className = 'button-danger';
             deleteButton.onclick = (e) => {
-                e.stopPropagation();
+                e.stopPropagation(); 
                 if (confirm('Are you sure you want to delete this video?')) {
                     currentVideos.splice(index, 1);
                     renderVideoList();
                 }
             };
+            
             li.onclick = () => showDetailView(index);
+            
             li.appendChild(deleteButton);
             videoListEl.appendChild(li);
         });
-    };
-    
-    // --- NEW: Function to render comments for the admin ---
-    const renderAdminComments = async (videoId) => {
-        adminCommentsList.innerHTML = 'Loading comments...';
-        try {
-            const response = await fetch(`/api/comments/${videoId}`);
-            const comments = await response.json();
-            adminCommentsList.innerHTML = '';
-            if (comments && comments.length > 0) {
-                comments.forEach(comment => {
-                    const commentEl = document.createElement('div');
-                    commentEl.className = 'comment'; // Use same style as user page
-                    commentEl.innerHTML = `
-                        <span class="comment-author">${comment.authorEmail}</span>
-                        <span class="comment-date">${new Date(comment.timestamp).toLocaleString()}</span>
-                        <p class="comment-text">${comment.text}</p>
-                        <div class="comment-actions">
-                            <button class="button-danger" onclick="adminDeleteComment('${videoId}', '${comment.id}')">Delete</button>
-                        </div>
-                    `;
-                    adminCommentsList.appendChild(commentEl);
-                });
-            } else {
-                adminCommentsList.innerHTML = '<p>No comments on this video.</p>';
-            }
-        } catch (e) {
-            adminCommentsList.innerHTML = '<p>Could not load comments.</p>';
-        }
-    };
-
-    window.adminDeleteComment = async (videoId, commentId) => {
-        if (!confirm('Are you sure you want to delete this comment?')) return;
-        try {
-            const response = await fetch(`/api/comments/${videoId}/${commentId}`, { method: 'DELETE', credentials: 'include' });
-            if (response.ok) {
-                renderAdminComments(videoId); // Refresh the list
-            } else {
-                alert('Failed to delete comment.');
-            }
-        } catch (error) {
-            alert('An error occurred while deleting the comment.');
-        }
     };
 
     const showDetailView = (index) => {
         currentlyEditingIndex = index;
         const video = currentVideos[index];
+        
         detailTitle.textContent = `Edit: ${video.title}`;
         detailVideoEmbed.src = `https://www.youtube.com/embed/${video.id}`;
         detailPostedDate.textContent = new Date(video.postedDate).toLocaleDateString();
         detailEditTitle.value = video.title;
         detailEditDescription.value = video.description || '';
         
-        // --- NEW: Fetch and render comments when showing detail view ---
-        renderAdminComments(video.id);
-        
         switchView('detail');
     };
 
-    // --- Event Listeners (mostly unchanged) ---
+    // --- Event Listeners ---
     addVideoForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const urlInput = document.getElementById('video-url');
         const titleInput = document.getElementById('video-title');
+        
         const videoId = extractVideoID(urlInput.value);
         if (!videoId) {
             alert('Could not extract a valid YouTube Video ID. Please check the URL.');
             return;
         }
+
         currentVideos.unshift({
             id: videoId,
             title: titleInput.value,
             description: '',
             postedDate: new Date().toISOString()
         });
+        
         renderVideoList();
         addVideoForm.reset();
     });
