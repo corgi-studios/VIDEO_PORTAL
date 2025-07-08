@@ -4,7 +4,7 @@ import { cors } from 'hono/cors';
 
 const app = new Hono();
 
-// CORS middleware
+// CORS middleware to allow your frontend to talk to the API
 app.use('/api/*', cors({
   origin: ['https://members.corgistudios.tech', 'https://video-portal.pages.dev'],
   allowMethods: ['GET', 'POST', 'OPTIONS'],
@@ -13,20 +13,23 @@ app.use('/api/*', cors({
 }));
 
 // --- Secure Admin-Only Middleware ---
+// This function checks if the logged-in user is an admin
 const adminOnly = async (c, next) => {
   try {
-    // *** THIS IS THE FIX: Using the correct, absolute URL you found ***
-    // Note: We don't need to pass headers here because the worker is on Cloudflare's network
-    const identityResponse = await fetch('https://corgistudios.cloudflareaccess.com/cdn-cgi/access/get-session');
+    // Use the correct absolute URL for the identity endpoint that you found
+    const identityResponse = await fetch('https://corgistudios.cloudflareaccess.com/cdn-cgi/access/get-identity');
     
-    if (!identityResponse.ok) throw new Error('Failed to get session.');
+    if (!identityResponse.ok) {
+      throw new Error('Failed to get identity from Cloudflare Access.');
+    }
     
     const identity = await identityResponse.json();
 
-    // Securely check if the Identity Provider type is Azure AD
+    // Securely check if the Identity Provider type is 'azureAD'
     if (identity.idp && identity.idp.type === 'azureAD') {
-      await next(); // Proceed if admin
+      await next(); // If it is, proceed to the API action
     } else {
+      // If not, block the request with a "Forbidden" error
       return c.json({ error: 'Forbidden: Admin access required.' }, 403);
     }
   } catch (e) {
@@ -36,13 +39,14 @@ const adminOnly = async (c, next) => {
 };
 
 // --- API Routes ---
-// GET route for everyone
+
+// GET route for all logged-in users to view videos
 app.get('/api/videos', async (c) => {
     const videoData = await c.env.VIDEO_PORTAL_KV.get('VIDEOS', { type: 'json' });
     return c.json(videoData || []);
 });
 
-// POST route protected by the admin middleware
+// POST route for admins to save videos, protected by the adminOnly middleware
 app.post('/api/admin/videos', adminOnly, async (c) => {
     try {
         const videos = await c.req.json();
