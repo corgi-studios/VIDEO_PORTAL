@@ -23,8 +23,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const session = await response.json();
             userInfoEl.textContent = `Signed in as: ${session.email}`;
 
-            // *** This is the core logic for detecting an admin ***
-            if (session.idp && session.idp.type === 'azure') { // Check if login type is Azure AD
+            // *** THIS IS THE FIX: Check for 'azureAD' ***
+            if (session.idp && session.idp.type === 'azureAD') { 
                 isAdmin = true;
                 adminPanel.style.display = 'block'; // Show the admin panel
             }
@@ -55,7 +55,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const container = document.createElement('div');
             container.className = 'video-container';
             
-            // Show admin actions only if the user is an admin
             const adminActionsHTML = isAdmin ? `
                 <div class="admin-actions" style="display: block;">
                     <button class="button-danger" onclick="window.deleteVideo(${index})">Delete</button>
