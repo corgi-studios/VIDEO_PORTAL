@@ -1,82 +1,160 @@
-// This function handles fetching the user identity and setting up the header
-const setupUserHeader = async () => {
-    try {
-        // We use 'get-session' which is proven to work from our tests
-        const response = await fetch('/cdn-cgi/access/get-session');
-        if (!response.ok) {
-            document.getElementById('user-info').textContent = 'Not signed in.';
-            return;
-        }
-
-        const session = await response.json();
-        const userInfoEl = document.getElementById('user-info');
-        const signOutButton = document.getElementById('sign-out-button');
-
-        // Display the user's email if it exists in the session
-        if (session && session.email) {
-            userInfoEl.textContent = `Signed in as: ${session.email}`;
-        } else {
-            // If the email isn't in the session, show a generic message
-            document.getElementById('user-info').textContent = 'Signed in';
-        }
-
-        // The sign-out URL is your domain followed by this special path
-        const domain = window.location.origin;
-        signOutButton.href = `${domain}/cdn-cgi/access/logout`;
-
-    } catch (error) {
-        console.error('Could not fetch user session:', error);
-        document.getElementById('user-info').textContent = 'Error loading user.';
-    }
-};
-
 document.addEventListener('DOMContentLoaded', () => {
-    // Run the header setup function when the page loads
-    setupUserHeader();
+    // Page Views
+    const listView = document.getElementById('list-view');
+    const detailView = document.getElementById('detail-view');
 
-    // The rest of the code for managing videos
-    const form = document.getElementById('add-video-form');
+    // --- List View Elements ---
+    const addVideoForm = document.getElementById('add-video-form');
     const videoListEl = document.getElementById('video-list');
-    const saveButton = document.getElementById('save-changes');
+    const saveAllButton = document.getElementById('save-all-changes');
     const statusEl = document.getElementById('status');
-    let currentVideos = [];
+    const signOutButton = document.getElementById('sign-out-button');
 
+    // --- Detail View Elements ---
+    const backButton = document.getElementById('back-button');
+    const detailForm = document.getElementById('detail-form');
+    const detailVideoEmbed = document.getElementById('detail-video-embed');
+    const detailTitle = document.getElementById('detail-title');
+    const detailPostedDate = document.getElementById('detail-posted-date');
+    const detailEditTitle = document.getElementById('detail-edit-title');
+    const detailEditDescription = document.getElementById('detail-edit-description');
+
+    // --- State Management ---
+    let currentVideos = [];
+    let currentlyEditingIndex = -1;
+
+    // --- Utility Functions ---
+    const extractVideoID = (urlOrId) => {
+        if (urlOrId.includes('youtube.com') || urlOrId.includes('youtu.be')) {
+            const url = new URL(urlOrId);
+            if (url.hostname === 'youtu.be') {
+                return url.pathname.slice(1);
+            }
+            return url.searchParams.get('v');
+        }
+        // Assume it's already an ID if it's not a recognizable URL
+        return urlOrId;
+    };
+
+    const switchView = (view) => {
+        if (view === 'detail') {
+            listView.style.display = 'none';
+            detailView.style.display = 'block';
+        } else {
+            detailView.style.display = 'none';
+            listView.style.display = 'block';
+        }
+    };
+
+    // --- Data & Rendering ---
     const loadVideos = async () => {
         try {
             const response = await fetch('/api/videos');
-            if (response.ok) {
-                currentVideos = await response.json();
-            } else {
-                currentVideos = [];
-                console.warn('Could not fetch video list, starting fresh.');
-            }
-            renderVideos();
+            currentVideos = response.ok ? await response.json() : [];
+            renderVideoList();
         } catch (error) {
             console.error('Error loading videos:', error);
             statusEl.textContent = 'Could not load video list.';
         }
     };
 
-    const renderVideos = () => {
+    const renderVideoList = () => {
         videoListEl.innerHTML = '';
         currentVideos.forEach((video, index) => {
             const li = document.createElement('li');
-            li.innerHTML = `<span>${video.title} (ID: ${video.id})</span>`;
+            li.className = 'video-list-item';
+            li.innerHTML = `<span>${video.title}</span>`;
+            
             const deleteButton = document.createElement('button');
             deleteButton.textContent = 'Delete';
-            deleteButton.className = 'delete';
-            deleteButton.onclick = () => {
-                currentVideos.splice(index, 1);
-                renderVideos();
+            deleteButton.className = 'button-danger';
+            deleteButton.onclick = (e) => {
+                e.stopPropagation(); // Prevent li click event from firing
+                if (confirm('Are you sure you want to delete this video?')) {
+                    currentVideos.splice(index, 1);
+                    renderVideoList();
+                }
             };
+            
+            li.onclick = () => showDetailView(index);
+            
             li.appendChild(deleteButton);
             videoListEl.appendChild(li);
         });
     };
 
-    form.addEventListener('submit', (e) => {
+    const showDetailView = (index) => {
+        currentlyEditingIndex = index;
+        const video = currentVideos[index];
+        
+        detailTitle.textContent = `Edit: ${video.title}`;
+        detailVideoEmbed.src = `https://www.youtube.com/embed/${video.id}`;
+        detailPostedDate.textContent = new Date(video.postedDate).toLocaleDateString();
+        detailEditTitle.value = video.title;
+        detailEditDescription.value = video.description || '';
+        
+        switchView('detail');
+    };
+
+    // --- Event Listeners ---
+    addVideoForm.addEventListener('submit', (e) => {
         e.preventDefault();
+        const urlInput = document.getElementById('video-url');
         const titleInput = document.getElementById('video-title');
-        const idInput = document.getElementById('video-id');
-        if (titleInput.value && idInput.value) {
-            currentVideos.push({ title: titleInput.value
+        
+        const videoId = extractVideoID(urlInput.value);
+        if (!videoId) {
+            alert('Could not extract a valid YouTube Video ID. Please check the URL.');
+            return;
+        }
+
+        currentVideos.unshift({
+            id: videoId,
+            title: titleInput.value,
+            description: '',
+            postedDate: new Date().toISOString()
+        });
+        
+        renderVideoList();
+        addVideoForm.reset();
+    });
+
+    detailForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (currentlyEditingIndex > -1) {
+            currentVideos[currentlyEditingIndex].title = detailEditTitle.value;
+            currentVideos[currentlyEditingIndex].description = detailEditDescription.value;
+            renderVideoList();
+            switchView('list');
+        }
+    });
+
+    backButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchView('list');
+    });
+
+    saveAllButton.addEventListener('click', async () => {
+        statusEl.textContent = 'Saving...';
+        try {
+            const response = await fetch('/api/admin/videos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(currentVideos)
+            });
+            const result = await response.json();
+            if (response.ok && result.success) {
+                statusEl.textContent = 'Changes saved successfully!';
+            } else {
+                throw new Error(result.error || 'Failed to save.');
+            }
+        } catch (error) {
+            statusEl.textContent = `Error: ${error.message}`;
+        }
+        setTimeout(() => statusEl.textContent = '', 3000);
+    });
+
+    // --- Initial Setup ---
+    signOutButton.href = `${window.location.origin}/cdn-cgi/access/logout`;
+    loadVideos();
+});
