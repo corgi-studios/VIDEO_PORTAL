@@ -12,21 +12,15 @@ app.use('/api/*', cors({
   credentials: true,
 }));
 
-// --- NEW: DIAGNOSTIC TEST ROUTE ---
-// This route will test the connection to the KV Namespace.
-app.get('/api/test-kv', async (c) => {
+// --- NEW: ONE-TIME-USE DATA CLEARING ROUTE ---
+// This route will delete the potentially corrupt video list.
+app.get('/api/admin/clear-data', async (c) => {
     try {
-        // Attempt to get a value from the KV store.
-        // It doesn't matter if the key exists or not, we just need to see if the command fails.
-        await c.env.VIDEO_PORTAL_KV.get('test-key');
-        
-        // If the command succeeds, return a success message.
-        return c.text('KV Namespace connection is OK.');
-
+        await c.env.VIDEO_PORTAL_KV.delete('VIDEOS');
+        return c.text('Video data has been cleared successfully. You can now return to the admin panel.');
     } catch (e) {
-        // If the command fails, it means the binding is broken.
-        console.error('KV BINDING TEST FAILED:', e);
-        return c.text(`KV Namespace connection FAILED. Error: ${e.message}`, 500);
+        console.error('FAILED TO CLEAR DATA:', e);
+        return c.text(`Failed to clear data. Error: ${e.message}`, 500);
     }
 });
 
