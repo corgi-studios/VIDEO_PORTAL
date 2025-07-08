@@ -1,48 +1,58 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    // --- Global State ---
     let isAdmin = false;
     let currentVideos = [];
 
-    // --- DOM Elements ---
-    const userInfoEl = document.getElementById('user-info');
-    const signOutButton = document.getElementById('sign-out-button');
     const adminPanel = document.getElementById('admin-panel');
     const addVideoForm = document.getElementById('add-video-form');
     const gallery = document.getElementById('video-gallery');
+    const userInfoEl = document.getElementById('user-info');
+    const signOutButton = document.getElementById('sign-out-button');
 
     // --- Main Initialization Function ---
     const initializeApp = async () => {
-        // 1. Set up the sign-out button immediately
         signOutButton.href = `${window.location.origin}/cdn-cgi/access/logout`;
 
-        // 2. Fetch user session to determine role
+        // We no longer need to fetch. We just check the response headers of the page itself.
+        // This is a more advanced technique but avoids all CORS issues.
         try {
-            // *** THIS IS THE FIX: Using the /get-identity endpoint you discovered ***
-            const response = await fetch('https://corgistudios.cloudflareaccess.com/cdn-cgi/access/get-identity', { credentials: 'include' });
-            
-            if (!response.ok) throw new Error('Could not get identity.');
-            
-            const identity = await response.json();
-            userInfoEl.textContent = `Signed in as: ${identity.email}`;
+            // The proxy worker adds the identity to the response headers of the initial page load.
+            const response = await fetch(window.location.href);
+            const userEmail = response.headers.get('X-User-Email');
+            const idpType = response.headers.get('X-User-IDP-Type');
 
-            // Check if the idp object and type property exist before comparing
-            if (identity.idp && identity.idp.type === 'azureAD') {
-                isAdmin = true;
-                adminPanel.style.display = 'block'; // Show the admin panel
+            if (userEmail) {
+                userInfoEl.textContent = `Signed in as: ${userEmail}`;
+            } else {
+                userInfoEl.textContent = 'Signed in';
             }
-        } catch (error) {
-            console.error("Identity check failed:", error);
-            userInfoEl.textContent = 'Error verifying login status.';
+            
+            if (idpType === 'azureAD') {
+                isAdmin = true;
+                adminPanel.style.display = 'block';
+            }
+        } catch(e) {
+            console.error("Could not read identity headers", e);
+            userInfoEl.textContent = 'Error verifying login.';
         }
 
-        // 3. Load and render videos
         loadAndRenderVideos();
     };
 
-    // --- Data and Rendering ---
-    const loadAndRenderVideos = async () => {
+    // --- Data and Rendering (Unchanged from before) ---
+    const loadAndRenderVideos = async () => { /* ... same as before ... */ };
+    const renderGallery = () => { /* ... same as before ... */ };
+    
+    // --- Admin Functions (Unchanged from before) ---
+    window.deleteVideo = (index) => { /* ... same as before ... */ };
+    const saveChanges = async () => { /* ... same as before ... */ };
+    
+    // --- Event Listeners (Unchanged from before) ---
+    addVideoForm.addEventListener('submit', (e) => { /* ... same as before ... */ });
+
+    // --- Helper Functions (to be included) ---
+    loadAndRenderVideos = async () => {
         try {
-            const response = await fetch('/api/videos', { credentials: 'include' });
+            const response = await fetch('/api/videos');
             currentVideos = response.ok ? await response.json() : [];
             renderGallery();
         } catch (error) {
@@ -50,8 +60,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             gallery.innerHTML = '<p>Could not load videos.</p>';
         }
     };
-
-    const renderGallery = () => {
+    renderGallery = () => {
         gallery.innerHTML = '';
         currentVideos.forEach((video, index) => {
             const container = document.createElement('div');
@@ -61,22 +70,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             gallery.appendChild(container);
         });
     };
-
-    // --- Admin Functions ---
     window.deleteVideo = (index) => {
         if (confirm(`Are you sure you want to delete "${currentVideos[index].title}"?`)) {
             currentVideos.splice(index, 1);
             saveChanges();
         }
     };
-
-    const saveChanges = async () => {
+    saveChanges = async () => {
         try {
             const response = await fetch('/api/admin/videos', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(currentVideos),
-                credentials: 'include'
+                body: JSON.stringify(currentVideos)
             });
             if (!response.ok) throw new Error('Failed to save changes.');
             loadAndRenderVideos();
@@ -85,8 +90,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert('Error saving changes. Check console for details.');
         }
     };
-
-    // --- Event Listeners ---
     addVideoForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const urlInput = document.getElementById('video-url');
