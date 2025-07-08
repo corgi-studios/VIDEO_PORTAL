@@ -4,7 +4,7 @@ import { handle } from 'hono/cloudflare-pages';
 const app = new Hono();
 
 // --- IMPORTANT: ADD YOUR TURNSTILE SECRET KEY HERE ---
-const TURNSTILE_SECRET_KEY = 'YOUR_SECRET_KEY_HERE'; 
+const TURNSTILE_SECRET_KEY = '0x4AAAAAABkRjRe1Ixl3ZWxJkY_Eo9GA1eY'; 
 // This is your admin email, used for deleting any comment.
 const ADMIN_EMAIL = 'quangnguyen@corgistudios.tech';
 
