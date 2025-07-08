@@ -13,17 +13,16 @@
          h1 { text-align: center; margin-top: 0; }
          hr { border: 0; border-top: 1px solid #dee2e6; margin: 30px 0; }
          input, textarea { width: calc(100% - 22px); padding: 10px; margin-bottom: 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 1em; }
-         textarea { resize: vertical; min-height: 80px; }
+         textarea { resize: vertical; min-height: 100px; }
          button, .button { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; text-decoration: none; display: inline-block; text-align: center; }
          .button-primary { background-color: #007bff; color: white; }
          .button-success { background-color: #28a745; color: white; }
          .button-secondary { background-color: #6c757d; color: white; }
          .button-danger { background-color: #dc3545; color: white; font-size: 0.8em; padding: 5px 8px; }
-         #video-list, #notification-list { list-style-type: none; padding: 0; }
-         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; }
-         .list-item > span { font-weight: 500; flex-grow: 1; }
-         .video-list-item { cursor: pointer; transition: background-color 0.2s; }
+         #video-list { list-style-type: none; padding: 0; }
+         .video-list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s; }
          .video-list-item:hover { background-color: #f1f3f5; }
+         .video-list-item span { font-weight: 500; }
          #detail-view { display: none; }
          .video-preview { position: relative; padding-bottom: 56.25%; height: 0; margin-bottom: 20px; }
          .video-preview iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 8px; }
@@ -35,8 +34,6 @@
         <header id="admin-header">
             <a id="sign-out-button" href="#">Sign Out</a>
         </header>
-
-        <!-- Video Management Section -->
         <div id="list-view">
             <h1>Admin Video Management</h1>
             <form id="add-video-form">
@@ -47,12 +44,10 @@
             </form>
             <hr>
             <h3>Current Videos (Click to Edit)</h3>
-            <ul id="video-list" class="video-list-item"></ul>
-            <button id="save-all-changes" class="button button-success">Save Video Changes</button>
-            <p id="status-videos"></p>
+            <ul id="video-list"></ul>
+            <button id="save-all-changes" class="button button-success">Save All Changes</button>
+            <p id="status"></p>
         </div>
-
-        <!-- Video Detail View (Hidden) -->
         <div id="detail-view">
             <a href="#" id="back-button" class="button button-secondary" style="margin-bottom: 20px;">&larr; Back to List</a>
             <h1 id="detail-title">Edit Video</h1>
@@ -66,25 +61,6 @@
                 <button type="submit" class="button button-primary">Save Details</button>
             </form>
         </div>
-        
-        <hr>
-
-        <!-- New Notification Management Section -->
-        <div id="notification-management">
-            <h2>Notification Management</h2>
-            <form id="add-notification-form">
-                <h3>Add New Notification</h3>
-                <input type="text" id="notification-title" placeholder="Notification Title" required>
-                <textarea id="notification-content" placeholder="Notification content..." required></textarea>
-                <button type="submit" class="button button-primary">Add Notification</button>
-            </form>
-            <hr>
-            <h3>Current Notifications</h3>
-            <ul id="notification-list"></ul>
-            <button id="save-notifications" class="button button-success">Save Notification Changes</button>
-            <p id="status-notifications"></p>
-        </div>
-
     </div>
     <script src="/admin.js"></script>
 </body>
