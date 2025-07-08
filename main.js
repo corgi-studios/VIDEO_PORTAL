@@ -1,8 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Global State ---
     let isAdmin = false;
     let allVideos = [];
     let allNotifications = [];
 
+    // --- DOM Elements ---
     const userInfoEl = document.getElementById('user-info');
     const signOutButton = document.getElementById('sign-out-button');
     const adminPanel = document.getElementById('admin-panel');
@@ -14,69 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const addNotificationForm = document.getElementById('add-notification-form');
     const deleteAllVideosBtn = document.getElementById('delete-all-videos');
 
-    const initializeApp = async () => {
-        signOutButton.href = `${window.location.origin}/cdn-cgi/access/logout`;
-        try {
-            console.log("Attempting to fetch identity from /api/get-identity...");
-            const response = await fetch('/api/get-identity', { credentials: 'include' });
-            
-            if (!response.ok) {
-                throw new Error(`API responded with status ${response.status}`);
-            }
-
-            const identity = await response.json();
-
-            // --- NEW DIAGNOSTIC LOGGING ---
-            console.log("--- IDENTITY CHECK ---");
-            console.log("Full identity object received from API:", identity);
-            console.log("Does identity object exist?", !!identity);
-            if (identity) {
-                console.log("Does identity.idp exist?", !!identity.idp);
-                if(identity.idp) {
-                    console.log("Value of identity.idp.type:", identity.idp.type);
-                    console.log("Is identity.idp.type === 'azureAD'?", identity.idp.type === 'azureAD');
-                }
-            }
-            console.log("--- END IDENTITY CHECK ---");
-            // --- END DIAGNOSTIC LOGGING ---
-
-
-            if (identity && identity.email) {
-                userInfoEl.textContent = `Signed in as: ${identity.email}`;
-            } else {
-                userInfoEl.textContent = 'Signed in';
-            }
-            
-            if (identity && identity.idp && identity.idp.type === 'azureAD') {
-                isAdmin = true;
-                adminPanel.style.display = 'block';
-            }
-        } catch(e) {
-            console.error("Critical error during initialization:", e);
-            userInfoEl.textContent = 'Error verifying login.';
-        }
-        loadNotifications();
-        loadAndRenderVideos();
-    };
-
-    const loadNotifications = async () => { /* ... same as before ... */ };
-    const renderNotifications = () => { /* ... same as before ... */ };
-    const loadAndRenderVideos = async () => { /* ... same as before ... */ };
-    const applyFiltersAndSort = () => { /* ... same as before ... */ };
-    const renderGallery = (videos) => { /* ... same as before ... */ };
-    window.deleteVideo = (index) => { /* ... same as before ... */ };
-    const saveVideoChanges = async () => { /* ... same as before ... */ };
-    const saveNotificationChanges = async () => { /* ... same as before ... */ };
-    
-    // --- Helper Functions (to be included) ---
-    loadNotifications = async () => {
-        try {
-            const response = await fetch('/api/notifications', { credentials: 'include' });
-            allNotifications = await response.json();
-            renderNotifications();
-        } catch (e) { console.error("Failed to load notifications", e); }
-    };
-    renderNotifications = () => {
+    // --- Helper & Rendering Functions ---
+    const renderNotifications = () => {
         if (allNotifications && allNotifications.length > 0) {
             notificationArea.style.display = 'block';
             notificationArea.innerHTML = '<h2>Announcements</h2>';
@@ -89,14 +30,20 @@ document.addEventListener('DOMContentLoaded', () => {
             notificationArea.style.display = 'none';
         }
     };
-    loadAndRenderVideos = async () => {
-        try {
-            const response = await fetch('/api/videos', { credentials: 'include' });
-            allVideos = await response.json() || [];
-            applyFiltersAndSort();
-        } catch (error) { gallery.innerHTML = '<p>Could not load videos.</p>'; }
+
+    const renderGallery = (videos) => {
+        gallery.innerHTML = '';
+        videos.forEach(video => {
+            const container = document.createElement('div');
+            container.className = 'video-container';
+            const originalIndex = allVideos.findIndex(v => v.id === video.id);
+            const adminActionsHTML = isAdmin ? `<div class="admin-actions" style="display: block;"><button class="button-danger" onclick="window.deleteVideo(${originalIndex})">Delete</button></div>` : '';
+            container.innerHTML = `<div class="video-embed"><iframe src="https://www.youtube.com/embed/${video.id}" frameborder="0" allowfullscreen></iframe></div><div class="video-info"><h3>${video.title}</h3><p class="video-meta">Posted: ${new Date(video.postedDate).toLocaleDateString()}</p><p class="video-description">${video.description || 'No description.'}</p>${adminActionsHTML}</div>`;
+            gallery.appendChild(container);
+        });
     };
-    applyFiltersAndSort = () => {
+
+    const applyFiltersAndSort = () => {
         let videosToDisplay = [...allVideos];
         const searchTerm = searchBar.value.toLowerCase();
         if (searchTerm) {
@@ -113,24 +60,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         renderGallery(videosToDisplay);
     };
-    renderGallery = (videos) => {
-        gallery.innerHTML = '';
-        videos.forEach(video => {
-            const container = document.createElement('div');
-            container.className = 'video-container';
-            const originalIndex = allVideos.findIndex(v => v.id === video.id);
-            const adminActionsHTML = isAdmin ? `<div class="admin-actions" style="display: block;"><button class="button-danger" onclick="window.deleteVideo(${originalIndex})">Delete</button></div>` : '';
-            container.innerHTML = `<div class="video-embed"><iframe src="https://www.youtube.com/embed/${video.id}" frameborder="0" allowfullscreen></iframe></div><div class="video-info"><h3>${video.title}</h3><p class="video-meta">Posted: ${new Date(video.postedDate).toLocaleDateString()}</p><p class="video-description">${video.description || 'No description.'}</p>${adminActionsHTML}</div>`;
-            gallery.appendChild(container);
-        });
+
+    // --- Data Fetching & Saving ---
+    const loadNotifications = async () => {
+        try {
+            const response = await fetch('/api/notifications', { credentials: 'include' });
+            allNotifications = await response.json();
+            renderNotifications();
+        } catch (e) { console.error("Failed to load notifications", e); }
     };
-    window.deleteVideo = (index) => {
-        if (confirm(`Are you sure you want to delete "${allVideos[index].title}"?`)) {
-            allVideos.splice(index, 1);
-            saveVideoChanges();
+
+    const loadAndRenderVideos = async () => {
+        try {
+            const response = await fetch('/api/videos', { credentials: 'include' });
+            allVideos = await response.json() || [];
+            applyFiltersAndSort();
+        } catch (error) {
+            gallery.innerHTML = '<p>Could not load videos.</p>';
         }
     };
-    saveVideoChanges = async () => {
+
+    const saveVideoChanges = async () => {
         try {
             const response = await fetch('/api/admin/videos', {
                 method: 'POST',
@@ -142,7 +92,8 @@ document.addEventListener('DOMContentLoaded', () => {
             applyFiltersAndSort();
         } catch (error) { alert('Error saving video changes.'); }
     };
-    saveNotificationChanges = async () => {
+
+    const saveNotificationChanges = async () => {
         try {
             const response = await fetch('/api/admin/notifications', {
                 method: 'POST',
@@ -155,8 +106,42 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) { alert('Error saving notification changes.'); }
     };
 
+    // --- Admin Functions (exposed to window) ---
+    window.deleteVideo = (index) => {
+        if (confirm(`Are you sure you want to delete "${allVideos[index].title}"?`)) {
+            allVideos.splice(index, 1);
+            saveVideoChanges();
+        }
+    };
+
+    // --- Main Initialization Function ---
+    const initializeApp = async () => {
+        signOutButton.href = `${window.location.origin}/cdn-cgi/access/logout`;
+        try {
+            const response = await fetch('/api/get-identity', { credentials: 'include' });
+            const identity = await response.json();
+
+            if (identity && identity.email) {
+                userInfoEl.textContent = `Signed in as: ${identity.email}`;
+            } else {
+                userInfoEl.textContent = 'Signed in';
+            }
+            if (identity && identity.idp && identity.idp.type === 'azureAD') {
+                isAdmin = true;
+                adminPanel.style.display = 'block';
+            }
+        } catch(e) {
+            console.error("Could not get identity from API", e);
+            userInfoEl.textContent = 'Error verifying login.';
+        }
+        loadNotifications();
+        loadAndRenderVideos();
+    };
+
+    // --- Event Listeners ---
     searchBar.addEventListener('input', applyFiltersAndSort);
     sortOptions.addEventListener('change', applyFiltersAndSort);
+
     addVideoForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const urlInput = document.getElementById('video-url');
@@ -172,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             return urlOrId;
         };
-        const videoId = extractVideoID(urlOrId.value);
+        const videoId = extractVideoID(urlInput.value);
         if (!videoId) { alert('Invalid YouTube URL or ID.'); return; }
         allVideos.unshift({
             id: videoId, title: titleInput.value, description: descriptionInput.value, postedDate: new Date().toISOString()
@@ -180,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveVideoChanges();
         addVideoForm.reset();
     });
+
     addNotificationForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const titleInput = document.getElementById('notification-title');
@@ -190,6 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveNotificationChanges();
         addNotificationForm.reset();
     });
+
     deleteAllVideosBtn.addEventListener('click', async () => {
         const confirmation = prompt('This cannot be undone. To confirm, type DELETE:');
         if (confirmation === 'DELETE') {
@@ -208,5 +195,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- Start the App ---
     initializeApp();
 });
