@@ -17,22 +17,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const initializeApp = async () => {
         signOutButton.href = `${window.location.origin}/cdn-cgi/access/logout`;
         try {
-            // *** THIS IS THE FIX ***
-            // We must include credentials for the browser to send the login cookie.
+            // Call our new API endpoint to get the identity
             const response = await fetch('/api/get-identity', { credentials: 'include' });
             const identity = await response.json();
 
-            if (identity.email) {
+            if (identity && identity.email) {
                 userInfoEl.textContent = `Signed in as: ${identity.email}`;
             } else {
                 userInfoEl.textContent = 'Signed in';
             }
-            if (identity.idp && identity.idp.type === 'azureAD') {
+            if (identity && identity.idp && identity.idp.type === 'azureAD') {
                 isAdmin = true;
                 adminPanel.style.display = 'block';
             }
         } catch(e) {
-            console.error("Could not get identity from API proxy", e);
+            console.error("Could not get identity from API", e);
             userInfoEl.textContent = 'Error verifying login.';
         }
         loadNotifications();
@@ -178,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const response = await fetch('/api/admin/videos/delete-all', { 
                     method: 'DELETE',
-                    credentials: 'include'
+                    credentials: 'include' 
                 });
                 if (!response.ok) throw new Error('Failed to delete all videos.');
                 allVideos = [];
