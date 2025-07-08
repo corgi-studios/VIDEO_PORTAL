@@ -10,19 +10,15 @@
         header { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 10px 20px; border-bottom: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         #user-info { font-weight: 500; }
         #sign-out-button { background-color: #6c757d; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px; font-size: 0.9em; }
-        
-        /* Admin Panel is hidden by default */
         #admin-panel { display: none; background-color: #fff8e1; border: 1px solid #ffecb3; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
-        
         h1, h2, h3 { color: #212529; }
         hr { border: 0; border-top: 1px solid #dee2e6; margin: 20px 0; }
-        input, textarea { width: calc(100% - 22px); padding: 10px; margin-bottom: 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 1em; }
+        input, textarea, select { width: calc(100% - 22px); padding: 10px; margin-bottom: 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 1em; }
         button { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; }
         .button-primary { background-color: #007bff; color: white; }
         .button-success { background-color: #28a745; color: white; }
-        .button-danger { background-color: #dc3545; color: white; font-size: 0.8em; padding: 5px 8px; }
-
-        #video-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        .button-danger { background-color: #dc3545; color: white; }
+        #video-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; margin-top: 20px; }
         .video-container { background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden; }
         .video-embed { position: relative; padding-bottom: 56.25%; height: 0; }
         .video-embed iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
@@ -30,7 +26,10 @@
         .video-info h3 { margin: 0 0 5px 0; }
         .video-meta { font-size: 0.8em; color: #6c757d; margin-bottom: 10px; }
         .video-description { font-size: 0.9em; line-height: 1.5; }
-        .admin-actions { display: none; margin-top: 10px; } /* Edit/Delete buttons hidden by default */
+        .admin-actions { display: none; margin-top: 10px; }
+        #notification-area { background-color: #e9f5ff; border: 1px solid #b8d6eb; border-radius: 8px; margin-bottom: 20px; padding: 1px 20px; }
+        #search-and-sort-controls { display: flex; gap: 20px; margin-bottom: 20px; }
+        #search-bar { flex-grow: 1; }
     </style>
 </head>
 <body>
@@ -40,18 +39,43 @@
     </header>
 
     <div class="container">
-        <!-- This panel will only be shown to admins -->
+        <!-- Admin Panel (hidden by default) -->
         <div id="admin-panel">
             <h2>Admin Tools</h2>
+            <hr>
+            <h3>Video Management</h3>
             <form id="add-video-form">
                 <input type="text" id="video-url" placeholder="YouTube URL or Video ID" required>
                 <input type="text" id="video-title" placeholder="Video Title" required>
                 <textarea id="video-description" placeholder="Video Description..."></textarea>
                 <button type="submit" class="button-primary">Add Video</button>
             </form>
+            <button id="delete-all-videos" class="button-danger" style="margin-top: 10px;">Delete All Videos</button>
+            <hr>
+            <h3>Notification Management</h3>
+            <form id="add-notification-form">
+                <input type="text" id="notification-title" placeholder="Notification Title" required>
+                <textarea id="notification-content" placeholder="Notification content..."></textarea>
+                <button type="submit" class="button-primary">Post Notification</button>
+            </form>
         </div>
 
+        <!-- Notification Area -->
+        <div id="notification-area"></div>
+
         <h1>Video Library</h1>
+
+        <!-- Search and Sort Controls -->
+        <div id="search-and-sort-controls">
+            <input type="search" id="search-bar" placeholder="Search by title...">
+            <select id="sort-options">
+                <option value="date-desc">Newest First</option>
+                <option value="date-asc">Oldest First</option>
+                <option value="alpha-asc">Title (A-Z)</option>
+                <option value="alpha-desc">Title (Z-A)</option>
+            </select>
+        </div>
+
         <div id="video-gallery"></div>
     </div>
 
