@@ -10,28 +10,28 @@ const decodeJwtPayload = (token) => {
     const decoded = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
     return JSON.parse(decoded);
   } catch (e) {
+    console.error("Failed to decode JWT:", e);
     return null;
   }
 };
 
 // --- Identity Endpoint ---
 app.get('/api/get-identity', async (c) => {
+  // Cloudflare Access automatically adds this header with the user's identity JWT.
   const jwt = c.req.header('Cf-Access-Jwt-Assertion');
   if (!jwt) {
-    return c.json({ email: null, isAdmin: false });
+    return c.json({ error: "No identity token found." }, 401);
   }
   
   const identity = decodeJwtPayload(jwt);
   if (!identity) {
-    return c.json({ email: null, isAdmin: false });
+    return c.json({ error: "Failed to decode identity token." }, 500);
   }
 
-  // Check if the user is an admin and return a simple boolean flag
-  const isAdmin = (identity.idp && identity.idp.type === 'azureAD');
-  
+  // Return only the necessary parts of the identity to the frontend
   return c.json({
       email: identity.email,
-      isAdmin: isAdmin
+      idp: identity.idp
   });
 });
 
@@ -70,7 +70,7 @@ app.get('/api/notifications', async (c) => {
     return c.json(notificationData || []);
 });
 app.post('/api/admin/notifications', adminOnly, async (c) => {
-    const notifications = await c.env.VIDEO_PORTAL_KV.get('NOTIFICATIONS', { type: 'json' });
+    const notifications = await c.req.json();
     await c.env.VIDEO_PORTAL_KV.put('NOTIFICATIONS', JSON.stringify(notifications));
     return c.json({ success: true });
 });
